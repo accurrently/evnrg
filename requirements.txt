@@ -1,0 +1,5 @@
+numba>=0.42.0
+pandas>=0.23.0
+numpy>=1.16.0
+apache-libcloud>=2.4.0
+appdirs>=1.4.3
