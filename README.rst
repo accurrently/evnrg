@@ -41,6 +41,14 @@ EVNRG takes in scenario definitions and interval travel data in order to generat
 * Deferred distance (per vehicle)
 * EVSE occupancy (per EVSE bank)
 
+TODO
+----
+* Write unit tests
+* Create Dask dispatcher for parallelized simulations
+* Implement geofenced rules
+* Implement smart charging behavior (throttling, round-robin) for situations where a `Bank`'s maximum power is lower the sum total of each `EVSE`'s maximum output.
+* Implement analyis (dependednt on `openei-rates`_)
+
 License
 -------
 This package is Free software under the Apache Software License 2.0. See LICENSE for more information.
@@ -66,3 +74,4 @@ This package's skeleton was created with Cookiecutter_ and the `audreyr/cookiecu
 .. _`Plug-in Hybrid and Electric Vehicle Research Center`: https://phev.ucdavis.edu
 .. _`Institute of Transportation Studies (ITS)`: https://its.ucdavis.edu
 .. _`Office of Naval Research NEPTUNE`: https://www.onr.navy.mil/en/Science-Technology/Departments/Code-33/All-Programs/333-sea-platforms-weapons/Neptune
+.. _`openei-rates`: https://github.com/accurrently/openei-rates
