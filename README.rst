@@ -70,7 +70,7 @@ This package's skeleton was created with Cookiecutter_ and the `audreyr/cookiecu
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
-.. _`Energy Graduate Group`: https://energy.ucdavis.edu
+.. _`Energy Graduate Group`: https://energy.ucdavis.edu/education/energy-graduate-group/
 .. _`Plug-in Hybrid and Electric Vehicle Research Center`: https://phev.ucdavis.edu
 .. _`Institute of Transportation Studies (ITS)`: https://its.ucdavis.edu
 .. _`Office of Naval Research NEPTUNE`: https://www.onr.navy.mil/en/Science-Technology/Departments/Code-33/All-Programs/333-sea-platforms-weapons/Neptune
