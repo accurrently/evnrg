@@ -57,7 +57,7 @@ Credits
 -------
 
 Initially written by Alex Campbell as part of a master's of science thesis project at the University of California, Davis `Energy Graduate Group`_.
-This projet falls under the auspices of the UC Davis `Institute of Transportation Studies (ITS)`_ and 
+This project falls under the auspices of the UC Davis `Institute of Transportation Studies (ITS)`_ and 
 the UC Davis `Plug-in Hybrid and Electric Vehicle Research Center`_. This project was funded by the `Office of Naval Research NEPTUNE`_ program.
 
 .. image:: https://github.com/accurrently/evnrg/raw/master/images/ITS-logo.jpg
