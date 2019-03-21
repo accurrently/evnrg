@@ -55,10 +55,8 @@ the UC Davis `Plug-in Hybrid and Electric Vehicle Research Center`_. This projec
 .. image:: https://github.com/accurrently/evnrg/raw/master/images/ITS-logo.jpg
 
 .. image:: https://github.com/accurrently/evnrg/raw/master/images/ONR-logo.png
-   :width: 50pt
 
 .. image:: https://github.com/accurrently/evnrg/raw/master/images/PHEV-logo.png
-   :width: 50pt
 
 This package's skeleton was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
