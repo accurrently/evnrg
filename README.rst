@@ -18,7 +18,7 @@ EVNRG
      :target: https://pyup.io/repos/github/accurrently/evnrg/
      :alt: Updates
 
-
+.. figure:: https://github.com/accurrently/evnrg/raw/master/images/w15-demand.png
 
 EVNRG is an EV electrical demand simulation package that takes in trip data and turns it into useful energy data given a set of assumptions.
 
