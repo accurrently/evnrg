@@ -264,8 +264,8 @@ class DataHandler(object):
                     )
                 )
         if 'csv' in fmts:
-            local_csv = local_path + '.records.json'
-            remote_csv = remote_base + 'records/' + uid + '.records.json'
+            local_csv = local_path + '.csv'
+            remote_csv = remote_base + 'csv/' + uid + '.csv'
             df.to_csv(
                 local_csv,
                 date_format='%Y-%m-%dT%H:%M:%S'
