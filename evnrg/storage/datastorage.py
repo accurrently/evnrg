@@ -15,6 +15,8 @@ from libcloud.storage.providers import get_driver, DRIVERS
 import appdirs
 import pandas as pd
 
+from .dataset import DatasetInfo
+
 TMP_DIR = appdirs.user_cache_dir('evnrg')
 CONFIG_DIR = appdirs.user_config_dir('evnrg')
 LOCAL_DATA = appdirs.user_data_dir('evnrg')
@@ -72,7 +74,7 @@ class StorageInfo(NamedTuple):
             * Digital Ocean Spaces: 'do', 'spaces', 'digitalocean'
             * Microsoft Azure: 'azure', 'microsoft'
             Defaults to 'local'.
-        cahce_dir (str): The local cahce directory for use when dumping
+        cache_dir (str): The local cache directory for use when dumping
             dataframes for upload, and downloading dataframes for use.
             Defaults to `~/.cache/evnrg`.
         create_bucket (bool): Specifies if a bucket should be created if it
@@ -341,6 +343,18 @@ class DataHandler(object):
                 return read_fn(tmp_name, **arguments)
             
         return None
+    
+    def read_dataset(self, dataset_info: DatasetInfo, fmt: str = 'parquet',
+                     read_fn=None, arguments: dict = {}):
+        if not isinstance(dataset_info, DatasetInfo):
+            raise TypeError('Must supply a DatasetInfo object!')
+
+        return self.read_data(
+            dataset_info.obj_path,
+            fmt,
+            read_fn,
+            arguments
+        ) 
 
 
 class DataResource(object):

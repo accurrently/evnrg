@@ -10,12 +10,10 @@ from .bank import QueueMode
 class Scenario(NamedTuple):
     powertrains: List[Powertrain]
     distribution: list
-    dataset_id: str
-    obj_path: str
     run_id: str = uuid.uuid4().hex
     home_threshold_min: float = 300.0
     away_threshold_min: float = 120.0
-    soc_deferrment_buffer: float = .2
+    soc_deferment_buffer: float = .2
     home_mask_rules: dict = [
         # An example of a time-based mask
         {

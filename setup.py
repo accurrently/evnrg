@@ -19,6 +19,10 @@ requirements = [
     'apache-libcloud'
 ]
 
+dependency_links = [
+    'https://github.com/SeguinBe/dask_k8/tarball/master'
+]
+
 setup_requirements = ['pytest-runner', ]
 
 test_requirements = ['pytest', ]
@@ -51,4 +55,5 @@ setup(
     url='https://github.com/accurrently/evnrg',
     version='0.1.0',
     zip_safe=False,
+    dependency_links=dependency_links
 )
