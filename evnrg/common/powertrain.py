@@ -1,7 +1,7 @@
 import enum
 from typing import NamedTuple
 
-from .fuel import Fuel, E10
+from .fuels import Fuel, CARBOB_E10
 from .plug import DCPlug
 
 __all__ = [
@@ -32,7 +32,7 @@ class Powertrain(NamedTuple):
     However, a code (optional) is useful to keep track of what powertrain
     has been used.
 
-    Attrributes:
+    Attributes:
         id (str): A short code useful for looking up the object in a database.
         ice_eff (float): Fuel efficiency of the powertrain in km/L.
         ev_eff (float): Electric efficiency in km/kWh.
@@ -53,7 +53,8 @@ class Powertrain(NamedTuple):
     dc_power: float = 0.
     dc_plug: int = DCPlug.NONE
     ptype: int = PType.ICEV
-    fuel: Fuel = E10
+    fuel: Fuel = CARBOB_E10
+    ice_alternator_eff = .21
 
     @property
     def pev(self) -> bool:
@@ -82,7 +83,7 @@ class Powertrain(NamedTuple):
 
     @property
     def dc_capable(self) -> bool:
-        """Returns `True` if the powertrain can accept AC conenctions."""
+        """Returns `True` if the powertrain can accept AC connections."""
         return self.dc_power > 0
 
     @property
@@ -93,3 +94,13 @@ class Powertrain(NamedTuple):
     def energy_at_soc(self, soc) -> float:
         """Returns how how much energy is in the battery at a given SoC."""
         return self.batt_cap * max(0.0, min(soc, 1.0))
+
+    def idle_fuel_consumption(self, load_kwh, use_gal = True) -> float:
+        if self.ice_eff > 0 and self.ice_alternator_eff > 0:
+            nrg_needed = load_kwh / self.ice_alternator_eff
+            if use_gal:
+                return nrg_needed / self.fuel.kWh_gal
+            else:
+                return nrg_needed / self.fuel.kWh_L
+        return 0
+

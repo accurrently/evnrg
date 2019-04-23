@@ -12,8 +12,9 @@ class Scenario(NamedTuple):
     distribution: list
     run_id: str = uuid.uuid4().hex
     home_threshold_min: float = 300.0
-    away_threshold_min: float = 120.0
+    away_threshold_min: float = 90.0
     soc_deferment_buffer: float = .2
+    idle_load_kw: 0.
     home_mask_rules: dict = [
         # An example of a time-based mask
         {

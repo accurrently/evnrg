@@ -131,7 +131,8 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             away_banks,
             rules,
             interval_len,
-            rows
+            rows,
+            sc.idle_load_kw
         )
 
         vehicle_ids = df.columns.values.tolist()

@@ -3,6 +3,7 @@ import numba as nb
 import pandas as pd
 from typing import List
 import random
+from typing import NamedTuple
 
 from evnrg.common.status import Status
 from .eligibility import (
@@ -23,8 +24,8 @@ def next_stop(distance_a: np.array, begin: int):
     i = begin
     length = distance_a.shape[0]
     d = distance_a[begin]
-    if d > 0:
-        while i < length and d > 0:
+    if not (d == 0.):
+        while i < length and not (d == 0):
             d = distance_a[i]
             i += 1
     return ECode(
@@ -32,7 +33,7 @@ def next_stop(distance_a: np.array, begin: int):
         end_index=i,
         code=Status.DRIVING
     )
-
+    
 
 @nb.njit
 def next_trip(distance_a: np.array, begin: int):
@@ -64,9 +65,9 @@ def next_charging_opportunity(distance_array: np.array,
     i = begin
     alen = distance_array.shape[0]
     code = ECode(alen, alen, Status.HOME_ELIGIBLE)
-    if distance_array[begin] == 0. and distance_array[begin + 1] > 0.:
+    if distance_array[begin] == 0. and not (distance_array[begin + 1] == 0.):
         while i < alen:
-            if distance_array[i] > 0.:
+            if not (distance_array[i] == 0.):
                 i += 1
             else:
                 code = stop_eligibility(distance_array, i, vidx, rules)
@@ -115,14 +116,192 @@ def is_last_bracket(distance_array: np.array, bkt: Bracket):
     return bkt.end >= distance_array.shape[0]
 
 
+@nb.vectorize(nopython=True)
+def energy_req(d, eff, idle):
+    out = 0    
+    if d < 0:
+        out =  idle
+    elif d > 0:
+        out =  d / eff
+    return out  
+#@nb.guvectorize([
+#    nb.float32[:],
+#    nb.float32,
+#    nb.float32,
+#    nb.float32,
+#    nb.float32,
+#    nb.float32,
+#    nb.float32,
+#    nb.float32[:],
+#    nb.float32[:],
+#    nb.float32[:]
+#    ],
+#    '(n),(),(),(),(),()->(n),(n),(n)', nopython=True)
+#def energy_req(
+#        distance_a: np.array,
+#        interval_mins: float,
+#        ev_batt: float,
+#        ev_eff: float,
+#        ev_idle_eff: float,
+#        ice_eff: float,
+#        ice_idle_eff: float,
+#        out: np.array):
+#    pev = bool(ev_eff > 0)
+#    ice = bool(ice_eff > 0)
+#    ELEC = 0
+#    ICE = 1
+#    SHORT = 2
+#    batt = ev_batt
+#    h = interval_mins / 60.0
+#
+#    for i in range(distance_a.shape[0]):
+#        d = distance_a[i]
+#
+#        out[i, SHORT] = 0.
+#
+#        # Driving
+#        if d >= 0:
+#            if pev:
+#                e_req = d / ev_eff
+#                if (not ice) and (e_req > batt):
+#                    out[i,SHORT] = e_req - batt
+#                e_act = min(e_req, batt)
+#                batt = batt - e_act
+#                out[i, ELEC] = batt
+#                
+#                d = d - (e_act * ev_eff)
+#            
+#            if ice:
+#                out[i, ICE] = d * ice_eff
+#        
+#        # Idling
+#        elif d < 0:
+#            h = interval_mins / 60.0
+#            if pev:
+#                e_req =  h * ev_idle_eff
+#                if (not ice) and (e_req > batt):
+#                    out[i, SHORT] = e_req - batt
+#                e_act = min(e_req, batt)
+#                batt = batt - e_act
+#                out[i, ELEC] = batt                
+#                h = h - (e_act / ev_eff)
+#            
+#            if ice:
+#                out[i, ICE] = h * ice_idle_eff
+#
+class DriveDetail(NamedTuple):
+    total_dist: float
+    deferred: float
+    driven: float
+    net_elec_used: float
+    fuel_used: float
+
+
+@nb.njit
+def drive_to_with_rw(
+    distance_array: np.array,
+    deferred_array: np.array,
+    battery_array: np.array,
+    fuel_array: np.array,
+    begin: int,
+    target: int,
+    mins_per_interval: float,
+    ev_eff: float,
+    begin_ev_batt: float,
+    max_ev_batt: float,
+    ice_eff: float,
+    ev_idle: float = 0.,
+    ice_idle: float = 0.,
+    range_added_per_interval: float = 0.,
+    bev_buffer = 0. ):
+    
+    max_len = distance_array.shape[0]
+
+    pev = bool(ev_eff > 0)
+    ice = bool(ice_eff > 0)
+    phev = pev and ice
+    bev = pev and not ice
+
+    if begin < max_len - 1:
+
+        # set the beginning SOC
+        batt = begin_ev_batt
+
+        # If this is a bev
+        if bev:
+            batt = begin_ev_batt * (1 - bev_buffer)
+        
+        i = begin + 0
+        run_again = True
+        sz = target - begin
+        z = np.zeros((sz, 3), dtype=np.float32)
+
+        while i < target:
+
+            z[:,:] = 0.
+            
+            energy_req(
+                distance_array[i:target],
+                mins_per_interval,
+                batt,
+                ev_eff,
+                ev_idle,
+                ice_eff,
+                ice_idle,
+                z
+            )
+
+            # If the required electricity exceeds our existing for a BEV, rewrite
+            if bev and z[:,2].sum() > 0:
+                # Forward through the current stop if it is one
+                while (distance_array[i] == 0) and i < target:
+                    i += 1
+                # Rewrite until the next trip
+                while (not (distance_array[i] == 0))  and i < target:
+                    if range_added_per_interval > 0:
+                        batt = min(batt + range_added_per_interval, max_ev_batt)
+                    battery_array[i] = batt
+                    deferred_array[i] = distance_array[i]
+                    distance_array[i] = 0.
+                    i += 1
+            else:
+                # Otherwise, we good and can break out
+                break
+        
+        battery_array[i:target] = z[i:target, 0]
+        fuel_array[i:target] = z[i:target, 1]
+        total_driven = distance_array[i:target].sum()
+
+        net_elec = battery_array[target - 1] - begin_ev_batt
+        fuel_used = fuel_array[begin:target].sum()
+        deferred = deferred_array[begin:target].sum()
+        driven = distance_array[begin:target].sum()
+
+
+    
+    # Return true if a disconnection event happend
+    if range_added_per_interval > 0 and total_driven > 0:
+        return True
+    return False
+
+
+                
+
+            
+
+
+
 @nb.njit
 def rewrite_deferred_trips(distance_array: np.array,
                            deferred_array: np.array,
+                           interval_mins: float,
                            begin: int,
                            target: int,
-                           begin_ev_range: float,
-                           max_ev_range: float,
-                           range_added_per_interval: float = 0.,
+                           begin_battery: float,
+                           max_battery: float,
+                           ev_eff: float,
+                           idle_load_kw: float = 0.,
+                           energy_added_per_interval: float = 0.,
                            soc_buffer: float = 0.):
     """Searches for next eligible stop for BEVs, and defers trips as necessary.
 
@@ -161,32 +340,40 @@ def rewrite_deferred_trips(distance_array: np.array,
 
     if begin < max_len - 1:
 
-        ev_range = begin_ev_range
+        batt = begin_battery
 
-        socmult = 1.0 - soc_buffer
-
-        required_dist = distance_array[begin:target].sum()
-
+        soc_coe = 1.0 - soc_buffer
+        
         i = begin
 
-        while i < target and (ev_range * socmult) < required_dist:
+        while i < target:
             # is the index advanced to a trip?
-            if distance_array[i] > 0:
+
+            length = target - i
+            #short = np.zeroes(length, dtype=np.float32)
+            #elec = np.zeroes(length, dtype=np.float32)
+            #fuel = np.zeroes(length, dtype=np.float32)
+
+            required_energy = energy_req(
+                    distance_array[i:target],
+                    (interval_mins / 60.0) * idle_load_kw,
+                    ev_eff
+                ).sum()
+
+            if batt * soc_coe >= required_energy:
+                break
+
+            if not (distance_array[i] == 0):
                 j = i
                 # Find the end of the trip
-                while distance_array[j] > 0:
-                    deferred_array[j] = distance_array[j]
-                    distance_array[j] = 0.0
+                while not (distance_array[j] ==  0):
+                    # Rewrite trips, but not idles
+                    if distance_array[j] > 0:
+                        deferred_array[j] = distance_array[j]
+                        distance_array[j] = 0.0
+                    if energy_added_per_interval > 0 and batt + energy_added_per_interval < max_battery:
+                        batt += energy_added_per_interval
                     j += 1
-                # Defer the trip in this window
-                required_dist = distance_array[begin:target].sum()
-
-                # Add range if we're connected
-                #range_added = 0.
-                #if range_added_per_interval > 0.:
-                #    range_added = (j - i) * range_added_per_interval
-                #    ev_range = min(range_added + ev_range, max_ev_range)
-                # Move up the index
                 i = j
             else:
                 # Iterate through a non-eligible stop
@@ -196,9 +383,11 @@ def rewrite_deferred_trips(distance_array: np.array,
 
 
 @nb.njit
-def drive_to_next_stop(begin: int, distance_a: np.array, fuel_a: np.array,
+def drive_to_next_stop(begin: int, distance_a: np.array, interval_min: float, fuel_a: np.array,
                        battery_a: np.array, battery_start: float,
-                       ev_efficiency: float, fuel_efficiency: float):
+                       ev_efficiency: float, fuel_efficiency: float, 
+                       fuel_alt_eff: float, fuel_kwh_per: float,
+                       idle_load_kw: float):
     """Efficiently drives a vehicle through a drive bracket and stores energy data.
 
     Args:
@@ -212,7 +401,7 @@ def drive_to_next_stop(begin: int, distance_a: np.array, fuel_a: np.array,
             in km/L. For BEVs, this should be zero.
 
     Returns:
-        An `int` indicating the number of intevals traveled.
+        An `int` indicating the number of intervals traveled.
 
     Raises:
         ValueError: if the EV distance and Ice distance do not add up to the
@@ -222,13 +411,17 @@ def drive_to_next_stop(begin: int, distance_a: np.array, fuel_a: np.array,
     error_ = .001
     # Double check we're driving
     i = begin
-    if distance_a[i] > 0.:
+    interval_hrs = interval_min / 60.0
+    use_fuel_idle = bool(fuel_alt_eff > 0 and fuel_kwh_per > 0)
+    if not (distance_a[i] == 0.):
         max_len = distance_a.shape[0]
         while (i < max_len) and (distance_a[i] > 0.):
 
             distance = distance_a[i]
             e_dist = 0.
+            e_idle = idle_load_kw * interval_hrs
             fuel_dist = 0.
+            
 
             # Check if we have a pev
             if ev_efficiency > 0.:
@@ -239,17 +432,39 @@ def drive_to_next_stop(begin: int, distance_a: np.array, fuel_a: np.array,
 
                 # Only continue if we actually have battery power left
                 if battery_state > 0.:
+
                     # Process battery
-                    battery_required = distance / ev_efficiency
+                    battery_required = 0.
+
+                    # Driving
+                    if distance >= 0:
+                        battery_required = distance / ev_efficiency
+                    
+                    # Idle stops
+                    elif idle_load_kw > 0:
+                        battery_required = e_idle
+                    
                     battery_used = min(battery_state, battery_required)
                     battery_a[i] = battery_state - battery_used
-                    e_dist = round(battery_used * ev_efficiency, 4)
+
+                    # Driving
+                    if distance >= 0:
+                        e_dist = round(battery_used * ev_efficiency, 4)
+                    # Idle stops
+                    elif idle_load_kw > 0:
+                        e_idle = round(e_idle - battery_used, 4)
 
             if fuel_efficiency > 0.:
 
-                fuel_dist = distance - e_dist
+                fuel_used = 0
+                
+                if distance >= 0:
+                    fuel_used = (distance - e_dist) / fuel_efficiency
 
-                fuel_a[i] = fuel_dist / fuel_efficiency
+                elif e_idle > 0 and use_fuel_idle:
+                    fuel_used = e_idle / (fuel_alt_eff * fuel_kwh_per)
+
+                fuel_a[i] = fuel_used
 
             i += 1
 
@@ -566,7 +781,7 @@ class Vehicle(object):
         """Charges the battery.
 
         Essentially a wrapper for `Vehicle.delta_battery()`,
-        esxcept that this function checks to ensure there
+        except that this function checks to ensure there
         is EVSE connected.
 
         Args:
@@ -584,7 +799,7 @@ class Vehicle(object):
         return False
 
     def attempt_defer_trips(self, rules: EligibilityRules,
-                            min_per_interval: float):
+                            min_per_interval: float, idle_load_kw: float = 0.):
         
         if self.idx + 1 < self.distance_a.shape[0]:
 
@@ -617,14 +832,16 @@ class Vehicle(object):
                         el_stop = code
                     else:
                         target_index = code.end_index
-                                
+                
                 a, b = rewrite_deferred_trips(
                     self.distance_a,
                     self.deferred_a,
+                    min_per_interval,
                     self.idx,
                     target_index,
-                    self.ev_range,
+                    self.battery_state,
                     self.powertrain.energy_at_soc(0.9),
+                    idle_load_kw,
                     self.evse_power * (min_per_interval/60.0),
                     self.soc_buffer
                 )
@@ -643,21 +860,30 @@ class Vehicle(object):
                         )
                     self.status = new_code.code
 
-    def advance_index(self, rules: EligibilityRules, min_per_interval: float):
+    def advance_index(self, rules: EligibilityRules, min_per_interval: float, idle_load_kw: float = 0.):
 
         max_len = self.distance_a.shape[0]
         if self.idx < max_len:
 
-            driving = self.distance_a[self.idx] > 0
-            drive_next = False
+            running = self.distance_a[self.idx] > 0. or self.distance_a[self.idx] < 0.
+            run_next = False
             if self.idx < max_len - 1:
-                drive_next = self.distance_a[self.idx + 1] > 0
+                drive_next = not (self.distance_a[self.idx + 1] == 0.)
 
             # Check for the end of a drive bracket
-            if driving:
+            if running:
                 code: ECode
                 code = next_stop(self.distance_a, self.idx)
                 try:
+
+                    """
+                    begin: int, distance_a: np.array, interval_min: float, fuel_a: np.array,
+                       battery_a: np.array, battery_start: float,
+                       ev_efficiency: float, fuel_efficiency: float, 
+                       fuel_alt_eff: float, fuel_kwh_per: float,
+                       idle_load_kw: float
+                    """
+
                     stop_index = drive_to_next_stop(
                         self.idx,
                         self.distance_a[:],
@@ -665,8 +891,12 @@ class Vehicle(object):
                         self.battery_a[:],
                         self.battery_state,
                         self.powertrain.ev_eff,
-                        self.powertrain.ice_eff
+                        self.powertrain.ice_eff,
+                        self.powertrain.ice_alternator_eff,
+                        self.powertrain.fuel.kWh_gal,
+                        idle_load_kw
                     )
+                
                 except AssertionError:
                     pass
 
@@ -679,7 +909,7 @@ class Vehicle(object):
                 )
                 self.status = code.code
 
-            elif drive_next:
+            elif run_next:
                 self.attempt_defer_trips(rules, min_per_interval)
                 self.idx += 1
                 if self.idx < max_len:

@@ -14,15 +14,16 @@ def simulation_loop(
         away_banks: List[Bank],
         rules: EligibilityRules,
         min_per_interval: float,
-        num_intevals: int
+        num_intervals: int,
+        idle_load_kw: float = 0.
         ):
 
-    for index in range(num_intevals):
+    for index in range(num_intervals):
 
         # Rewrite any trips that might not be possible
         for vehicle in vehicles:
             vehicle: Vehicle
-            vehicle.attempt_defer_trips(rules, min_per_interval)
+            vehicle.attempt_defer_trips(rules, min_per_interval, idle_load_kw)
         
         # Disconnect all the vehicles that are leaving or done
         # Home banks
@@ -49,9 +50,6 @@ def simulation_loop(
                     for bank in away_banks:
                         if bank.enqueue_vehicle_prob(vehicle):
                             break
-                
-                
-
 
         # Process the EVSE queue and charge
         for bank in home_banks:
@@ -64,7 +62,7 @@ def simulation_loop(
 
         for vehicle in vehicles:
             if index >= vehicle.idx:
-                vehicle.advance_index(rules, min_per_interval)
+                vehicle.advance_index(rules, min_per_interval, idle_load_kw)
 
 
     return vehicles, home_banks
