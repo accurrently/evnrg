@@ -55,9 +55,11 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
     Returns:
         A `SimulationResult` with all the relevant energy data.
     """
+    storage = DataHandler(storage_info)
+    
     try:
         # First pull down the data
-        storage = DataHandler(storage_info)
+        
         df = storage.read_data(ds.obj_path)
 
         rows = len(df.index)
@@ -175,7 +177,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
 
     except Exception as e:
         raise e
-        
+
     finally:
         storage.cleanup()
 
