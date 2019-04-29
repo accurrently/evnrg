@@ -171,20 +171,13 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
                 formats='parquet records csv',
             )
         
-        storage.cleanup()
+        
 
     except Exception as e:
-        return SimulationResult(
-            scenario_id=sc.run_id,
-            dataset_id=ds.dataset_id,
-            dataset_path=ds.obj_path,
-            deferred=None,
-            fuel_use=None,
-            occupancy=None,
-            demand=None,
-            battery=None,
-            error=str(e)
-        )
+        raise e
+        
+    finally:
+        storage.cleanup()
 
     return SimulationResult(
         scenario_id=sc.run_id,
