@@ -88,24 +88,26 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
 
         # Get the banks up
 
-        away_banks = []
-        for bank_info in sc.away_banks:
-            evse_list = []
-            for evse_type in bank_info.get('evse'):
-                evse_list.append(EVSE(evse_type))
-            demand_a = np.zeros(rows, dtype=np.float32)
-            occupancy_a = np.zeros(rows, dtype=np.uint8)
-            bank = Bank(
-                max_power=bank_info.get('max_power', 0.),
-                capacity=bank_info.get('capacity', 0.),
-                evse=evse_list,
-                queue_probability=bank_info.get('probability', .2),
-                queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
-                demand_profile=demand_a,
-                occupancy_profile=occupancy_a,
-                dynamic_size=True
-            )
-            away_banks.append(bank)
+        #away_banks = []
+        #for bank_info in sc.away_banks:
+        #    evse_list = []
+        #    for evse_type in bank_info.get('evse'):
+        #        evse_list.append(EVSE(evse_type))
+        #    demand_a = np.zeros(rows, dtype=np.float32)
+        #    occupancy_a = np.zeros(rows, dtype=np.uint8)
+        #    bank = Bank(
+        #        max_power=bank_info.get('max_power', 0.),
+        #        capacity=bank_info.get('capacity', 0.),
+        #        evse=evse_list,
+        #        queue_probability=bank_info.get('probability', .2),
+        #        queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
+        #        demand_profile=demand_a,
+        #        occupancy_profile=occupancy_a,
+        #        dynamic_size=True
+        #    )
+        #    away_banks.append(bank)
+
+        away_banks = sc.make_away_banks(rows)
         
         #num_banks = 0
         #home_banks = []
@@ -126,7 +128,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         #    home_banks.append(bank)
         #    num_banks += 1
 
-        home_banks = sc.make_home_banks(fleet.size)
+        home_banks = sc.make_home_banks(fleet.size, rows)
         num_banks = len(home_banks)
 
         out_vehicles, out_banks = simulation_loop(

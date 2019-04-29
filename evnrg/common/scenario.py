@@ -59,7 +59,7 @@ class Scenario(NamedTuple):
         }
     ]
 
-    def make_home_banks(self, fleet_size):
+    def make_home_banks(self, fleet_size, rows):
         home_banks = []
         for bank_info in self.home_banks:
             evse_list = []
@@ -79,4 +79,25 @@ class Scenario(NamedTuple):
             )
             home_banks.append(bank)
         return home_banks
+    
+    def make_away_banks(self, rows):
+        away_banks = []
+        for bank_info in self.away_banks:
+            evse_list = []
+            for evse_type in bank_info.get('evse'):
+                evse_list.append(EVSE(evse_type))
+            demand_a = np.zeros(rows, dtype=np.float32)
+            occupancy_a = np.zeros(rows, dtype=np.uint8)
+            bank = Bank(
+                max_power=bank_info.get('max_power', 0.),
+                capacity=bank_info.get('capacity', 0.),
+                evse=evse_list,
+                queue_probability=bank_info.get('probability', .2),
+                queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
+                demand_profile=np.zeros(rows, dtype=np.float32),
+                occupancy_profile=np.zeros(rows, dtype=np.uint8),
+                dynamic_size=True
+            )
+            away_banks.append(bank)
+        return away_banks
 
