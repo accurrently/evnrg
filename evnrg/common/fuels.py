@@ -79,16 +79,16 @@ BD100_TUCO = Fuel(32.6, 30.15) # Pure biodiesel - Texan Used Cooking Oil (T1N-17
 
 # Fuel Mixtures
 CARBOB_E10 = Fuel.from_mix(
-    (CARBOB, .9),
-    (E100_CAC, .1)
+    [(CARBOB, .9),
+    (E100_CAC, .1)]
 )
 
 CARBOB_E85 = Fuel.from_mix(
-    (CARBOB, .15),
-    (E100_CAC, .85)
+    [(CARBOB, .15),
+    (E100_CAC, .85)]
 )
 
 DieselULS_BD20 = Fuel.from_mix(
-    (DieselULS, .8),
-    (BD100_TUCO, .2)
+    [(DieselULS, .8),
+    (BD100_TUCO, .2)]
 )
