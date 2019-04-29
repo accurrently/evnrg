@@ -73,7 +73,8 @@ class KubeJobCollection(object):
         'worker_yaml',
         'namespace',
         'cluster_id',
-        'n_workers'
+        'n_workers',
+        'client'
     )
 
     def __init__(self, storage_info: StorageInfo, num_workers: int,
@@ -92,6 +93,7 @@ class KubeJobCollection(object):
       self.worker_yaml = DEFAULT_DASK_WORKER_YAML
       self.cluster_id = cluster_id
       self.namespace = namespace
+      self.client = None
 
       if isinstance(scheduler_pod_file, str):
           try:
@@ -110,8 +112,8 @@ class KubeJobCollection(object):
           self.sched_yaml = scheduler_pod_spec
       if worker_pod_spec and isinstance(worker_pod_spec, str):
           self.worker_yaml = worker_pod_spec
-    
-    def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo]):
+        
+    def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], print_client_info = True):
 
       cluster = DaskCluster(
           namespace=self.namespace,
@@ -123,6 +125,8 @@ class KubeJobCollection(object):
 
       with cluster:
           client = cluster.make_dask_client()  # Waits for the scheduler to be started
+          if print_client_info:
+            print(client)
           cluster.scale(self.n_workers)
 
           results = []
