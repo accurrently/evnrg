@@ -4,6 +4,7 @@ import os
 import uuid
 from typing import List
 import math
+import logging
 
 from dask_k8 import DaskCluster
 
@@ -115,6 +116,7 @@ class KubeJobCollection(object):
         
     def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], print_client_info = True):
 
+      logging.info('Creating cluster object...')
       cluster = DaskCluster(
           namespace=self.namespace,
           cluster_id=self.cluster_id,
@@ -123,7 +125,9 @@ class KubeJobCollection(object):
       )
       out = []
 
+      logging.info('Starting cluster...')
       with cluster:
+          logging.info('Making Dask client...')
           client = cluster.make_dask_client()  # Waits for the scheduler to be started
           if print_client_info:
             print(client)
@@ -131,6 +135,7 @@ class KubeJobCollection(object):
 
           results = []
 
+          logging.info('Running Scenarios...')
           for scenario in scenarios:
               for dataset in datasets:
                   sim_result = client.submit(run_simulation, dataset, scenario, self.storage_info)
