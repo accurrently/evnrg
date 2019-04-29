@@ -415,7 +415,7 @@ def drive_to_next_stop(begin: int, distance_a: np.array, interval_min: float, fu
     use_fuel_idle = bool(fuel_alt_eff > 0 and fuel_kwh_per > 0)
     if not (distance_a[i] == 0.):
         max_len = distance_a.shape[0]
-        while (i < max_len) and (distance_a[i] > 0.):
+        while (i < max_len) and not (distance_a[i] == 0.):
 
             distance = distance_a[i]
             e_dist = 0.
@@ -441,7 +441,7 @@ def drive_to_next_stop(begin: int, distance_a: np.array, interval_min: float, fu
                         battery_required = distance / ev_efficiency
                     
                     # Idle stops
-                    elif idle_load_kw > 0:
+                    elif distance < 0:
                         battery_required = e_idle
                     
                     battery_used = min(battery_state, battery_required)

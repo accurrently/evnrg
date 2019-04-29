@@ -8,6 +8,8 @@ from .vehicle import Vehicle
 
 __all__ = []
 
+
+
 def simulation_loop(
         vehicles: List[Vehicle],
         home_banks: List[Bank],
