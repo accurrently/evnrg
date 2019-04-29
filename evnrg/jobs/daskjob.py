@@ -26,12 +26,6 @@ class DaskJobRunner(object):
         self.scheduler_address = scheduler_address
         self.client = Client(self.scheduler_address)
     
-    def __enter__(self):
-        pass
-    
-    def __exit__(self, type, value, traceback):
-        self.client.close()
-    
     def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
                         storage_info: StorageInfo, print_client_info = True):
 
