@@ -4,7 +4,7 @@ import uuid
 from .powertrain import Powertrain
 from .evse import EVSEType
 from .plug import DCPlug
-from .bank import QueueMode
+from .bank import QueueMode, Bank
 
 
 class Scenario(NamedTuple):
@@ -39,10 +39,7 @@ class Scenario(NamedTuple):
             'probability': 1.,
             'queue': QueueMode.DEFAULT,
             'evse': [
-                EVSEType(7),
-                EVSEType(7),
-                EVSEType(6),
-                EVSEType(6)
+                (EVSEType(7), 0, 0, .5)
             ]
         }
     ]
@@ -61,3 +58,25 @@ class Scenario(NamedTuple):
             ]
         }
     ]
+
+    def make_home_banks(self, fleet_size):
+        home_banks = []
+        for bank_info in self.home_banks:
+            evse_list = []
+            for evse_type, nmin, nmax, proportion in bank_info.get('evse'):
+                n_evse = min(nmin, max(nmax, math.floor(proportion * fleet_size)))
+                for i in range(n_evse)
+                    evse_list.append(EVSE(evse_type))
+            bank = Bank(
+                max_power=bank_info.get('max_power', 0.),
+                capacity=bank_info.get('capacity', 0.),
+                evse=evse_list,
+                queue_probability=bank_info.get('probability', 1.),
+                queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
+                demand_profile=np.zeros(rows, dtype=np.float32),
+                occupancy_profile=np.zeros(rows, dtype=np.uint8),
+                dynamic_size=False
+            )
+            home_banks.append(bank)
+        return home_banks
+

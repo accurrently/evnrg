@@ -3,6 +3,7 @@ import uuid
 
 import pandas as pd
 import numpy as np
+import math
 
 # Scenario information
 from evnrg.common.scenario import Scenario
@@ -106,24 +107,27 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             )
             away_banks.append(bank)
         
-        num_banks = 0
-        home_banks = []
-        for bank_info in sc.home_banks:
-            evse_list = []
-            for evse_type in bank_info.get('evse'):
-                evse_list.append(EVSE(evse_type))
-            bank = Bank(
-                max_power=bank_info.get('max_power', 0.),
-                capacity=bank_info.get('capacity', 0.),
-                evse=evse_list,
-                queue_probability=bank_info.get('probability', 1.),
-                queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
-                demand_profile=np.zeros(rows, dtype=np.float32),
-                occupancy_profile=np.zeros(rows, dtype=np.uint8),
-                dynamic_size=False
-            )
-            home_banks.append(bank)
-            num_banks += 1
+        #num_banks = 0
+        #home_banks = []
+        #for bank_info in sc.home_banks:
+        #    evse_list = []
+        #    for evse_type in bank_info.get('evse'):
+        #        evse_list.append(EVSE(evse_type))
+        #    bank = Bank(
+        #        max_power=bank_info.get('max_power', 0.),
+        #        capacity=bank_info.get('capacity', 0.),
+        #        evse=evse_list,
+        #        queue_probability=bank_info.get('probability', 1.),
+        #        queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
+        #        demand_profile=np.zeros(rows, dtype=np.float32),
+        #        occupancy_profile=np.zeros(rows, dtype=np.uint8),
+        #        dynamic_size=False
+        #    )
+        #    home_banks.append(bank)
+        #    num_banks += 1
+
+        home_banks = sc.make_home_banks(fleet.size)
+        num_banks = len(home_banks)
 
         out_vehicles, out_banks = simulation_loop(
             fleet.vehicles,
