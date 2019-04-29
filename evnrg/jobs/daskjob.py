@@ -24,10 +24,10 @@ class DaskJobRunner(object):
     def __init__(self, scheduler_address = ''):
 
         self.scheduler_address = scheduler_address
-        self.client = None
+        self.client = Client(self.scheduler_address)
     
     def __enter__(self):
-        self.client = Client(self.scheduler_address)
+        pass
     
     def __exit__(self, type, value, traceback):
         self.client.close()
