@@ -95,13 +95,13 @@ class KubeJobCollection(object):
       self.namespace = namespace
       self.client = None
 
-      if isinstance(scheduler_pod_file, str):
+      if isinstance(scheduler_pod_file, str) and scheduler_pod_file:
           try:
               shed_file = open(scheduler_pod_file, 'r')
               self.sched_yaml = sched_file.read()
           except IOError:
               raise IOError('Schedule pod YAML file does not exist.')
-      if isinstance(worker_pod_file, str):
+      if isinstance(worker_pod_file, str) and worker_pod_file:
           try:
               work_file = open(worker_pod_file, 'r')
               self.worker_yaml = work_file.read()
