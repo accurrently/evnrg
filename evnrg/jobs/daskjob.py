@@ -30,10 +30,11 @@ class DaskJobRunner(object):
                         storage_info: StorageInfo, print_client_info = True):
 
         client = self.client
-        out = []
 
         logging.info('Running Scenarios...')
-      
+
+        results = []
+
         for scenario in scenarios:
             for dataset in datasets:
                 sim_result = client.submit(run_simulation, dataset, scenario, storage_info)
