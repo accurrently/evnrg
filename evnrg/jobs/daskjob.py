@@ -24,7 +24,10 @@ class DaskJobRunner(object):
     def __init__(self, scheduler_address = ''):
 
         self.scheduler_address = scheduler_address
-        self.client = Client(self.scheduler_address)
+        if not scheduler_address:
+            self.client = Client()
+        else:
+            self.client = Client(self.scheduler_address)
     
     def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
                         storage_info: StorageInfo, print_client_info = True):
