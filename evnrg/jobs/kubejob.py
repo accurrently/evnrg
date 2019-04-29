@@ -13,7 +13,7 @@ from evnrg.storage.datastorage import StorageInfo
 from evnrg.simulation.simulation import run_simulation, SimulationResult
 from evnrg.jobs.job_results import JobResults
 
-from setup import requirements
+from requirements import requirements
 
 DEFAULT_DASK_SCHEDULER_YAML = """
 containers:

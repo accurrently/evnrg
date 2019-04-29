@@ -11,17 +11,8 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [
-    'numba>=0.42.0',
-    'numpy>=1.15.0',
-    'pandas>=0.23.0',
-    'appdirs',
-    'apache-libcloud'
-]
 
-dependency_links = [
-    'https://github.com/SeguinBe/dask_k8/tarball/master'
-]
+from requirements import requirements, dependency_links
 
 setup_requirements = ['pytest-runner', ]
 
