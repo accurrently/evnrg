@@ -29,7 +29,7 @@ class DaskJobRunner(object):
     def __enter__(self):
         self.client = Client(self.scheduler_address)
     
-    def __exit__(self):
+    def __exit__(self, type, value, traceback):
         self.client.close()
     
     def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
