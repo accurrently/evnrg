@@ -89,7 +89,7 @@ class KubeJobCollection(object):
       self.storage_info = storage_info,
       self.n_workers = num_workers
       
-      self.shed_yaml = DEFAULT_DASK_SCHEDULER_YAML
+      self.sched_yaml = DEFAULT_DASK_SCHEDULER_YAML
       self.worker_yaml = DEFAULT_DASK_WORKER_YAML
       self.cluster_id = cluster_id
       self.namespace = namespace
