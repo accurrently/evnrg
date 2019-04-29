@@ -153,7 +153,7 @@ class Bank(object):
                 demand += evse.charge_vehicle(minutes_per_interval)
                 occ += 1
         self.demand_profile[idx] = demand
-        self.occupancy_profile[idx] = occ / self.size
+        self.occupancy_profile[idx] = (occ / self.size) if self.size > 0 else 0
 
     def set_profile_length(self, size: int):
         self.demand_profile = np.zeros(size, dtype=np.float32)
