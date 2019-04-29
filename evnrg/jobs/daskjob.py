@@ -26,6 +26,7 @@ class DaskJobRunner(object):
         self.scheduler_address = scheduler_address
         if not scheduler_address:
             self.client = Client()
+            self.scheduler_address = 'localhost:8786'
         else:
             self.client = Client(self.scheduler_address)
     
