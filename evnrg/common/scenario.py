@@ -34,7 +34,7 @@ class Scenario(NamedTuple):
         #    'radius': 400
         #}
     ]
-    home_banks = [
+    home_banks: list = [
         {
             'probability': 1.,
             'queue': QueueMode.DEFAULT,
@@ -44,7 +44,7 @@ class Scenario(NamedTuple):
         }
     ]
 
-    away_banks = [
+    away_banks: list = [
         {
             'probability': .1,
             'evse': [
