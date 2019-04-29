@@ -11,9 +11,9 @@ class Scenario(NamedTuple):
     powertrains: List[Powertrain]
     distribution: list
     run_id: str = uuid.uuid4().hex
-    home_threshold_min: float = 300.0
-    away_threshold_min: float = 90.0
-    soc_deferment_buffer: float = .2
+    home_threshold_min: float = 180.0 # Default to 3 hours
+    away_threshold_min: float = 90.0 # default to 1.5 hours
+    soc_deferment_buffer: float = .2 # default to 20% SoC buffer
     idle_load_kw: float =  0.
     home_mask_rules: dict = [
         # An example of a time-based mask
