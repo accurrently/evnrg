@@ -40,7 +40,7 @@ class DaskJobRunner(object):
                 sim_result = client.submit(run_simulation, dataset, scenario, storage_info)
                 results.append(sim_result)
           
-        out = results.result()
+        out = dask.compute(*results)
       
         return JobResults(out)
     
