@@ -178,6 +178,11 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             scenario_id=sc.run_id,
             dataset_id=ds.dataset_id,
             dataset_path=ds.obj_path,
+            deferred=None,
+            fuel_use=None,
+            occupancy=None,
+            demand=None,
+            battery=None,
             error=str(e)
         )
 
