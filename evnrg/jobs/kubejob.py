@@ -82,7 +82,7 @@ class KubeJobCollection(object):
                  scheduler_pod_file: str = None, worker_pod_file: str = None,
                  scheduler_pod_spec: str = None, worker_pod_spec: str = None):
 
-      if n_workers <= 0:
+      if num_workers <= 0:
           raise ValueError('Number of workers must be >= 0!')
       
       # Initialize lists of stuff
