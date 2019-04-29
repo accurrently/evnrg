@@ -37,7 +37,7 @@ class DaskJobRunner(object):
 
         for scenario in scenarios:
             for dataset in datasets:
-                sim_result = client.submit(run_simulation, dataset, scenario, storage_info)
+                sim_result = dask.delayed(run_simulation)(dataset, scenario, storage_info)
                 results.append(sim_result)
           
         out = dask.compute(*results)
