@@ -56,7 +56,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         A `SimulationResult` with all the relevant energy data.
     """
     storage = DataHandler(storage_info)
-    
+
     try:
         # First pull down the data
         
@@ -160,7 +160,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         for bank in out_banks:
             bank_col = 'bank_{}'.format(bank_i)
             demand_df[bank_col] = bank.demand_profile
-            occupancy_df[bank_col] = (bank.occupancy_profile / bank.size) * 100.0
+            occupancy_df[bank_col] = (bank.occupancy_profile / bank.size) * 100.0 if bank.size > 0 else 0
             bank_i += 1
         
         obj_base = 'results/' + 'simulations/' + sc.run_id + '/'
