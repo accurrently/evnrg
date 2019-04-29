@@ -15,7 +15,7 @@ class Scenario(NamedTuple):
     away_threshold_min: float = 90.0 # default to 1.5 hours
     soc_deferment_buffer: float = .2 # default to 20% SoC buffer
     idle_load_kw: float =  0.
-    home_mask_rules: dict = [
+    home_mask_rules: list = [
         # An example of a time-based mask
         {
             'type': 'time',
@@ -43,7 +43,6 @@ class Scenario(NamedTuple):
             ]
         }
     ]
-
     away_banks: list = [
         {
             'probability': .1,
