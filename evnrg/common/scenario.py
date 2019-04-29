@@ -2,7 +2,7 @@ from typing import NamedTuple, List
 import uuid
 
 from .powertrain import Powertrain
-from .evse import EVSEType
+from .evse import EVSEType, EVSE
 from .plug import DCPlug
 from .bank import QueueMode, Bank
 
@@ -65,7 +65,7 @@ class Scenario(NamedTuple):
             evse_list = []
             for evse_type, nmin, nmax, proportion in bank_info.get('evse'):
                 n_evse = min(nmin, max(nmax, math.floor(proportion * fleet_size)))
-                for i in range(n_evse)
+                for i in range(n_evse):
                     evse_list.append(EVSE(evse_type))
             bank = Bank(
                 max_power=bank_info.get('max_power', 0.),
