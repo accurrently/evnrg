@@ -32,7 +32,8 @@ class DaskJobRunner(object):
     def __exit__(self):
         self.client.close()
     
-    def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], print_client_info = True):
+    def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
+                        storage_info: StorageInfo, print_client_info = True):
 
         client = self.client
         out = []
@@ -41,7 +42,7 @@ class DaskJobRunner(object):
       
         for scenario in scenarios:
             for dataset in datasets:
-                sim_result = client.submit(run_simulation, dataset, scenario, self.storage_info)
+                sim_result = client.submit(run_simulation, dataset, scenario, storage_info)
                 results.append(sim_result)
           
         out = results.result()
