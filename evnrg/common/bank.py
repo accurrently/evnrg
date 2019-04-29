@@ -87,7 +87,9 @@ class Bank(object):
 
     @property
     def occupancy(self) -> float:
-        return float(len(self.occupied_evse) / self.size)
+        if self.size > 0:
+            return float(len(self.occupied_evse) / self.size)
+        return 0
 
     @property
     def num_occupied(self):
@@ -115,7 +117,9 @@ class Bank(object):
 
     @property
     def pct_capacity(self):
-        return self.total_demand / self.capacity
+        if self.capacity > 0:
+            return self.total_demand / self.capacity
+        return 0
 
     def record_demand(self, idx: int):
         self.demand_profile[idx] = self.total_demand
