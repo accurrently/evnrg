@@ -60,7 +60,7 @@ def stop_eligibility(distance_array: np.array,
 
     status = Status.DRIVING
     end = begin
-    if not (distance_array[begin] > 0):
+    if distance_array[begin] == 0:
 
         status = Status.INELIGIBLE
 

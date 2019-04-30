@@ -820,19 +820,9 @@ class Vehicle(object):
         if self.powertrain.ice_eff > 0:
             if idle and idle_req > 0:
                 fuel = self.powertrain.idle_fuel_consumption(idle_req)
-            elif d >= 0:
+            elif d > 0:
                 fuel = d / self.powertrain.ice_eff
         self.fuel_burned_a[self.idx] = fuel
-        
-
-
-            
-
-        
-
-
-            
-
 
     def attempt_defer_trips(self, rules: EligibilityRules,
                             min_per_interval: float, idle_load_kw: float = 0.):
@@ -914,15 +904,17 @@ class Vehicle(object):
 
             else:                
                 if self.idx > 0 and not( self.distance_a[self.idx - 1] == 0):
-                    code = stop_eligibility(
+                    
+            
+            self.idx += 1
+
+            code = stop_eligibility(
                         self.distance_a,
                         self.idx,
                         self.fleet_id,
                         rules
                     )
-                    self.status = code.code
-            
-            self.idx += 1
+            self.status = code.code
 
                 #code: ECode
                 #code = next_stop(self.distance_a, self.idx)
