@@ -162,6 +162,10 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             demand_df[bank_col] = bank.demand_profile
             occupancy_df[bank_col] = (bank.occupancy_profile / bank.size) * 100.0 if bank.size > 0 else 0
             bank_i += 1
+        if len(demand_df.columns) == 0:
+            demand_df['bank_null'] = 0
+        if len(occupancy_df.columns) == 0:
+            demand_df['bank_null'] = 0
         
         obj_base = 'results/' + 'simulations/' + sc.run_id + '/'
 
@@ -170,7 +174,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             storage.upload_data(
                 df=fr,
                 obj_path=obj_base + nm + '/' +  ds.dataset_id,
-                formats='records csv',
+                formats='parquet records csv',
             )
         
         
