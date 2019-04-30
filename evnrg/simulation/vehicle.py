@@ -525,6 +525,7 @@ class Vehicle(object):
     """
 
     __slots__ = (
+        'vid',
         'fleet_id',
         'powertrain',
         'max_soc',
@@ -543,8 +544,9 @@ class Vehicle(object):
     def __init__(self, fleet_index: int, 
                  ptrain: Powertrain, distance: np.array,
                  rules: EligibilityRules, start_soc: float = 1.,
-                 soc_buffer: float = 0):
-
+                 soc_buffer: float = 0, vid: str = ''):
+        
+        self.vid = vid
         self.begin_energy = ptrain.energy_at_soc(start_soc)
         self.fleet_id = fleet_index
         self.powertrain = ptrain

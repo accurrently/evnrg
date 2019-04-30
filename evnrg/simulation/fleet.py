@@ -24,6 +24,8 @@ class Fleet(object):
         self.vehicles = []
         self.size = self.df.values.shape[1]
 
+        vnames = df.columns
+
         if isinstance(powertrains, list):
             for pt in powertrains:
                 if not isinstance(pt, Powertrain):
@@ -53,12 +55,13 @@ class Fleet(object):
                 p=np.array(probs)
             )
 
-            for pt, vid in zip(pt_assignments, range(self.size)):
+            for pt, vid, vname in zip(pt_assignments, range(self.size), vnames):
                 vehicle = Vehicle(
                     vid,
                     trains[pt],
                     self.df.values[:, vid],
-                    rules
+                    rules,
+                    vid = vname
                 )
                 self.vehicles.append(vehicle)
 

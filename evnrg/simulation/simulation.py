@@ -151,7 +151,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         battery_df = pd.DataFrame(index=df.index)
 
         for vehicle in out_vehicles:
-            vid = vehicle_ids[vehicle.fleet_id]
+            vid = str(vehicle.vid)
             fuel_df[vid] = vehicle.fuel_burned_a
             deferred_df[vid] = vehicle.deferred_a
             battery_df[vid] = vehicle.battery_a
