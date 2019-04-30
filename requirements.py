@@ -4,10 +4,8 @@ requirements = [
     'pandas>=0.24.0',
     'dask>=1.1.2',
     'distributed>=1.27.0',
-    'fastparquet',
     'appdirs',
-    'apache-libcloud',
-    'pycrypto'
+    'apache-libcloud'
 ]
 
 dependency_links = []
