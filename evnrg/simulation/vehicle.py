@@ -918,14 +918,6 @@ class Vehicle(object):
                 #code = next_stop(self.distance_a, self.idx)
                 #try:
 
-                    """
-                    begin: int, distance_a: np.array, interval_min: float, fuel_a: np.array,
-                       battery_a: np.array, battery_start: float,
-                       ev_efficiency: float, fuel_efficiency: float, 
-                       fuel_alt_eff: float, fuel_kwh_per: float,
-                       idle_load_kw: float
-                    """
-
                 #    stop_index = drive_to_next_stop(
                 #        self.idx,
                 #        self.distance_a[:],
@@ -939,14 +931,6 @@ class Vehicle(object):
                 #        self.powertrain.fuel.kWh_gal,
                 #        idle_load_kw
                 #    )
-
-                    """
-                    begin: int, distance_a: np.array, interval_min: float, fuel_a: np.array,
-                       battery_a: np.array, battery_start: float,
-                       ev_efficiency: float, fuel_efficiency: float, 
-                       fuel_alt_eff: float, fuel_kwh_per: float,
-                       idle_load_kw: float):
-                    """
                 
                 #except AssertionError:
                 #    pass
