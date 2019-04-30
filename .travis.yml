@@ -22,7 +22,7 @@ deploy:
   distributions: sdist bdist_wheel
   user: accurrently
   password:
-    secure: 
+    secure: "cHIxVUqhyHY5L5313zkSbZtwEr8zKbBdsWKA7M+Oq6b38WmUi7e4NqC+S6n5bfXLTL1wkleVyObhSOuz7SrIaNQvQPcUPR4sJXCTrOHDVwuMI4IaUMA371+K5CZznZ/JoBRWKalFMPAnG7i6i+KWvGAVgY71QaMQvEGrZQj+bprfSHG2vKs8pufdwCWAeCt0Zlbb+LgcwXruPFf9l70Bw1JdQ+Z26gDowE8su7LE2lyTUmRogyyqNX+nhNKYFhWJ2EFvYd0lpvohw4uW3k2hJ8WnCY8Qbw2anI2wp2A2D3ZehRt0F9BwHQmKLK7fZWvNfSGKuqlAtfboV7Q3yg839dcA45+UrWLjxoio0BXd3gFXNqfTUeFupQwNaXUdocg+tnvl42Kc8e0r0vOmM2rTD8Ed9ESU9dVKHxCqQi+yYY/Mj9Sw0SUgUwsTFkVQTbzqE8lLLunudFzAwzI8f9VQ7Oc8uzFfQm25A3GQYLAncjWaxW0fV4CLbhH1oCf1yV/4AnCraOjhNp18xDjtme/2l2eouLMnBuE3TF6Gkcbte3j5cDnU5O2EGwlQBsV2/ZWghJKbsIM2Aw6kQhsaL67fZ83mfA701GDJYTsO4aFcW/OgMG4lwnU/dYwfDaqoBIlWNbMe+jsNlaArwJZnwXaeWOWHjKzPbIpPVyCCycGx+14="
   on:
     tags: true
     repo: accurrently/evnrg
