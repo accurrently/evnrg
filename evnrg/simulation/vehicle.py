@@ -818,7 +818,7 @@ class Vehicle(object):
 
         fuel = 0
         if self.powertrain.has_ice:
-            elif idle:
+            if idle:
                 fuel = idle_req / (self.powertrain.fuel.kWh_gal * self.powertrain.ice_alternator_eff)
             else:
                 fuel = d / self.powertrain.ice_eff
