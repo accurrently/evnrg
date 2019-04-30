@@ -170,7 +170,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             storage.upload_data(
                 df=fr,
                 obj_path=obj_base + nm + '/' +  ds.dataset_id,
-                formats='parquet records csv',
+                formats='records csv',
             )
         
         
