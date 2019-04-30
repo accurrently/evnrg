@@ -10,16 +10,12 @@ from .scenario import Scenario
 from .eligibility import EligibilityRules
 from .fleet import Fleet
 # Storage
-from evnrg.storage import (
-    DatasetInfo,
-    StorageInfo,
-    DataResource,
-    DataHandler
-)
+from .datastorage import DatasetInfo, StorageInfo, DataHandler
+
 # Objects
-from evnrg.common.evse import EVSE, EVSEType
-from evnrg.common.bank import Bank, QueueMode
-from evnrg.common.status import Status
+from .evse import EVSE, EVSEType
+from .bank import Bank, QueueMode
+from .status import Status
 
 # The loop
 from .loop import simulation_loop
