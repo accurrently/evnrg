@@ -132,6 +132,14 @@ class DataHandler(object):
 
         self.cache_dir = storage_info.cache_dir
 
+        # Attempt to make the dir
+        try:
+            os.makedirs(self.cache_dir)
+        except Exception e:
+            # Path already exists
+            pass
+
+
         self.temp = []
 
         # Create the path if it doesn't exist
@@ -314,7 +322,7 @@ class DataHandler(object):
 
         fname = uuid.uuid4().hex + '-' + obj_name.split('/')[-1]
 
-        tmp_name = os.path.join(TMP_DIR, fname)
+        tmp_name = os.path.join(self.cache_dir, fname)
 
         if self.driver.download_object(o, tmp_name, True, True):
 
