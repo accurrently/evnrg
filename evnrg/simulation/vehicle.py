@@ -803,6 +803,8 @@ class Vehicle(object):
         idle_req = idle_kw * (interval_min / 60.0)
         d = self.distance_a[self.idx]
 
+        idle = bool(d < 0)
+
         if self.powertrain.pev:
             req = 0
             if d < 0:
