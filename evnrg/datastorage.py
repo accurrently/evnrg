@@ -318,6 +318,16 @@ class DataHandler(object):
 
         if self.driver.download_object(o, tmp_name, True, True):
 
+            # retry 3 times
+            tries = 0
+            while not os.path.isfile(tmp_name) and tries < 3:
+                self.driver.download_object(o, tmp_name, True, True)
+                tries += 1
+
+
+            if not os.path.isfile(tmp_name) and tries >= 3:
+                return None
+            
             self.temp.append(tmp_name)
             
             if fmt == 'parquet':
