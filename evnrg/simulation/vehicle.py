@@ -797,6 +797,39 @@ class Vehicle(object):
             new_state = self.delta_battery(energy)
             return self.battery_state - new_state
         return False
+    
+    def drive(self, interval_min, idle_kw):
+
+        idle_req = idle_kw * (interval_min / 60.0)
+        d = self.distance_a[self.idx]
+        idle = bool(d < 0)
+
+        if self.powertrain.pev:
+            req = 0
+            if idle:
+                req = min(idle_req, self.battery_state)
+                idle_req = idle_req - req
+            else:
+                req = min(d / self.powertrain.ev_eff, self.battery_state)
+                d = d - (req * self.powertrain.ev_eff)
+
+            self.battery_a[self.idx] = self.battery_state - req
+
+        if self.powertrain.has_ice:
+            if idle:
+                self.fuel_burned_a[self.idx] = idle_req / (self.powertrain.fuel.kWh_gal * self.powertrain.ice_alternator_eff)
+            else:
+                self.fuel_burned_a[self.idx] = d / self.powertrain.ice_eff
+        
+
+
+            
+
+        
+
+
+            
+
 
     def attempt_defer_trips(self, rules: EligibilityRules,
                             min_per_interval: float, idle_load_kw: float = 0.):
@@ -872,9 +905,18 @@ class Vehicle(object):
 
             # Check for the end of a drive bracket
             if running:
-                code: ECode
-                code = next_stop(self.distance_a, self.idx)
-                try:
+
+                self.drive(min_per_interval, idle_load_kw)
+
+            elif not self.evse_connected:
+
+                self.battery_a[self.idx] = self.battery_a[self.idx - 1]
+            
+            self.idx += 1
+
+                #code: ECode
+                #code = next_stop(self.distance_a, self.idx)
+                #try:
 
                     """
                     begin: int, distance_a: np.array, interval_min: float, fuel_a: np.array,
@@ -884,19 +926,19 @@ class Vehicle(object):
                        idle_load_kw: float
                     """
 
-                    stop_index = drive_to_next_stop(
-                        self.idx,
-                        self.distance_a[:],
-                        min_per_interval,
-                        self.fuel_burned_a[:],
-                        self.battery_a[:],
-                        self.battery_state,
-                        self.powertrain.ev_eff,
-                        self.powertrain.ice_eff,
-                        self.powertrain.ice_alternator_eff,
-                        self.powertrain.fuel.kWh_gal,
-                        idle_load_kw
-                    )
+                #    stop_index = drive_to_next_stop(
+                #        self.idx,
+                #        self.distance_a[:],
+                #        min_per_interval,
+                #        self.fuel_burned_a[:],
+                #        self.battery_a[:],
+                #        self.battery_state,
+                #        self.powertrain.ev_eff,
+                #        self.powertrain.ice_eff,
+                #        self.powertrain.ice_alternator_eff,
+                #        self.powertrain.fuel.kWh_gal,
+                #        idle_load_kw
+                #    )
 
                     """
                     begin: int, distance_a: np.array, interval_min: float, fuel_a: np.array,
@@ -906,24 +948,24 @@ class Vehicle(object):
                        idle_load_kw: float):
                     """
                 
-                except AssertionError:
-                    pass
+                #except AssertionError:
+                #    pass
 
-                self.idx = stop_index
-                code = stop_eligibility(
-                    self.distance_a,
-                    self.idx,
-                    self.fleet_id,
-                    rules
-                )
-                self.status = code.code
+                #self.idx = stop_index
+                #code = stop_eligibility(
+                #    self.distance_a,
+                #    self.idx,
+                #    self.fleet_id,
+                #    rules
+                #)
+                #self.status = code.code
 
-            elif run_next:
-                self.attempt_defer_trips(rules, min_per_interval)
-                self.idx += 1
-                if self.idx < max_len:
-                    self.battery_a[self.idx] = self.battery_a[self.idx - 1]
-            else:
-                self.idx += 1
-                if self.idx < max_len:
-                    self.battery_a[self.idx] = self.battery_a[self.idx - 1]
+            #elif run_next:
+            #    self.attempt_defer_trips(rules, min_per_interval)
+            #    self.idx += 1
+            #    if self.idx < max_len:
+            #        self.battery_a[self.idx] = self.battery_a[self.idx - 1]
+            #else:
+            #    self.idx += 1
+            #    if self.idx < max_len:
+            #        self.battery_a[self.idx] = self.battery_a[self.idx - 1]
