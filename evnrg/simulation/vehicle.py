@@ -816,11 +816,13 @@ class Vehicle(object):
             elif not self.evse_connected:
                 self.battery_a[self.idx] = self.battery_state
 
+        fuel = 0
         if self.powertrain.has_ice:
-            if idle:
-                self.fuel_burned_a[self.idx] = idle_req / (self.powertrain.fuel.kWh_gal * self.powertrain.ice_alternator_eff)
+            elif idle:
+                fuel = idle_req / (self.powertrain.fuel.kWh_gal * self.powertrain.ice_alternator_eff)
             else:
-                self.fuel_burned_a[self.idx] = d / self.powertrain.ice_eff
+                fuel = d / self.powertrain.ice_eff
+        self.fuel_burned_a[self.idx] = fuel
         
 
 
