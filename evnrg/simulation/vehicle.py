@@ -817,10 +817,10 @@ class Vehicle(object):
                 self.battery_a[self.idx] = self.battery_state
 
         fuel = 0
-        if self.powertrain.has_ice:
-            if idle:
-                fuel = idle_req / (self.powertrain.fuel.kWh_gal * self.powertrain.ice_alternator_eff)
-            else:
+        if self.powertrain.ice_eff > 0:
+            if idle and idle_req > 0:
+                fuel = self.powertrain.idle_fuel_consumption(idle_req)
+            elif d >= 0:
                 fuel = d / self.powertrain.ice_eff
         self.fuel_burned_a[self.idx] = fuel
         
