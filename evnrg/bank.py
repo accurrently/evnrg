@@ -7,7 +7,7 @@ from typing import List
 import numpy as np
 
 from .evse import EVSE
-from ..simulation.vehicle import Vehicle
+from .vehicle import Vehicle
 from .status import Status
 
 __all__ = [

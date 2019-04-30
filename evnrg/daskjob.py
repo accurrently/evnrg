@@ -8,11 +8,11 @@ from typing import List
 import math
 import logging
 
-from evnrg.common.scenario import Scenario
-from evnrg.storage.dataset import DatasetInfo
-from evnrg.storage.datastorage import StorageInfo
-from evnrg.simulation.simulation import run_simulation, SimulationResult
-from evnrg.jobs.job_results import JobResults
+from .scenario import Scenario
+from .dataset import DatasetInfo
+from .datastorage import StorageInfo
+from .simulation import run_simulation, SimulationResult
+from .job_results import JobResults
 
 class DaskJobRunner(object):
 

@@ -1,8 +1,8 @@
 from typing import List
 
 from .eligibility import EligibilityRules
-from evnrg.common.status import Status
-from evnrg.common.bank import Bank
+from .status import Status
+from .bank import Bank
 from .vehicle import Vehicle
 
 

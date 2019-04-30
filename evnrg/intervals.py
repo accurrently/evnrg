@@ -1,8 +1,8 @@
 import numba as nb
 import numpy as np
 
-from evnrg.simulation.eligibility import EligibilityRules, Eligibility
-from evnrg.simulation.bracket import Bracket, make_bracket
+from .eligibility import EligibilityRules, Eligibility
+from .bracket import Bracket, make_bracket
 
 
 @nb.njit

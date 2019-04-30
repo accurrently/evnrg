@@ -3,7 +3,7 @@ from typing import NamedTuple
 import numpy as np
 import numba as nb
 
-from evnrg.common.status import Status
+from .status import Status
 
 __all__ = [
     'EligibilityRules',

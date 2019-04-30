@@ -5,15 +5,15 @@ from typing import List
 import random
 from typing import NamedTuple
 
-from evnrg.common.status import Status
+from .status import Status
 from .eligibility import (
     EligibilityRules,
     ECode
 )
 from .eligibility import stop_eligibility
-from evnrg.common.powertrain import Powertrain, PType
+from .powertrain import Powertrain, PType
 from .bracket import Bracket
-from evnrg.common.plug import DCPlug
+from .plug import DCPlug
 
 __all__ = [
     'Vehicle'

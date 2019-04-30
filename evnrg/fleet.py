@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from .vehicle import Vehicle
-from evnrg.common.powertrain import Powertrain
+from .powertrain import Powertrain
 from .eligibility import EligibilityRules
 
 __all__ = [

@@ -5,7 +5,7 @@ import numba as nb
 
 from .eligibility import EligibilityRules
 from .eligibility import check_mask
-from evnrg.common.status import Status
+from .status import Status
 
 
 @nb.jitclass([

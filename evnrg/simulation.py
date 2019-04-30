@@ -6,7 +6,7 @@ import numpy as np
 import math
 
 # Scenario information
-from evnrg.common.scenario import Scenario
+from .scenario import Scenario
 from .eligibility import EligibilityRules
 from .fleet import Fleet
 # Storage
