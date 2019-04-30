@@ -6,17 +6,12 @@ EVNRG
 .. image:: https://img.shields.io/pypi/v/evnrg.svg
         :target: https://pypi.python.org/pypi/evnrg
 
-.. image:: https://img.shields.io/travis/accurrently/evnrg.svg
-        :target: https://travis-ci.org/accurrently/evnrg
-
 .. image:: https://readthedocs.org/projects/evnrg/badge/?version=latest
         :target: https://evnrg.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-
-.. image:: https://pyup.io/repos/github/accurrently/evnrg/shield.svg
-     :target: https://pyup.io/repos/github/accurrently/evnrg/
-     :alt: Updates
+.. image:: https://travis-ci.com/accurrently/evnrg.svg?branch=master
+    :target: https://travis-ci.com/accurrently/evnrg
 
 .. figure:: https://github.com/accurrently/evnrg/raw/master/images/w15-demand.png
 
