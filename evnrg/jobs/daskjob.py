@@ -44,7 +44,7 @@ class DaskJobRunner(object):
                 sim_result = dask.delayed(run_simulation)(dataset, scenario, storage_info)
                 results.append(sim_result)
           
-        out = dask.compute(*results)
+        out = dask.compute(**results)
       
         return JobResults(out)
     
