@@ -12,7 +12,17 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 
-from requirements import requirements, dependency_links
+# from requirements import requirements, dependency_links
+
+requirements = [
+    #'numba>=0.42.0',
+    #'numpy>=1.16.0',
+    #'pandas>=0.24.0',
+    #'dask',
+    #'distributed',
+    #'appdirs',
+    #'apache-libcloud'
+]
 
 setup_requirements = ['pytest-runner', ]
 
@@ -42,7 +52,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/accurrently/evnrg',
-    version='0.1.6-4',
+    version='0.1.6-5',
     zip_safe=False,
     dependency_links=dependency_links
 )
