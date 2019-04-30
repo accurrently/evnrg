@@ -898,19 +898,29 @@ class Vehicle(object):
         max_len = self.distance_a.shape[0]
         if self.idx < max_len:
 
-            running = self.distance_a[self.idx] > 0. or self.distance_a[self.idx] < 0.
+            running = not (self.distance_a[self.idx] == 0.)
             run_next = False
             if self.idx < max_len - 1:
-                drive_next = not (self.distance_a[self.idx + 1] == 0.)
+                run_next = not (self.distance_a[self.idx + 1] == 0.)
 
             # Check for the end of a drive bracket
             if running:
 
                 self.drive(min_per_interval, idle_load_kw)
+                self.code = Status.DRIVING
 
-            elif not self.evse_connected:
-
-                self.battery_a[self.idx] = self.battery_a[self.idx - 1]
+            else:
+                if not self.evse_connected:
+                    self.battery_a[self.idx] = self.battery_a[self.idx - 1]
+                
+                if self.idx > 0 and not( self.distance_a[self.idx - 1] == 0):
+                    code = stop_eligibility(
+                        self.distance_a,
+                        self.idx,
+                        self.fleet_id,
+                        rules
+                    )
+                    self.status = code.code
             
             self.idx += 1
 
@@ -936,13 +946,7 @@ class Vehicle(object):
                 #    pass
 
                 #self.idx = stop_index
-                #code = stop_eligibility(
-                #    self.distance_a,
-                #    self.idx,
-                #    self.fleet_id,
-                #    rules
-                #)
-                #self.status = code.code
+                
 
             #elif run_next:
             #    self.attempt_defer_trips(rules, min_per_interval)
