@@ -4,7 +4,7 @@ requirements = [
     'pandas>=0.24.0',
     'dask>=1.1.2',
     'distributed>=1.27.0',
-    'fastparquet>=0.2.1',
+    'fastparquet',
     'appdirs',
     'apache-libcloud',
     'pycrypto'
