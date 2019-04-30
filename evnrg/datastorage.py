@@ -135,7 +135,7 @@ class DataHandler(object):
         # Attempt to make the dir
         try:
             os.makedirs(self.cache_dir)
-        except Exception e:
+        except Exception as e:
             # Path already exists
             pass
 
