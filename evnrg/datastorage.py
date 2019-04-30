@@ -312,7 +312,7 @@ class DataHandler(object):
         if o is None:
             return None
 
-        fname = obj_name.split('/')[-1]
+        fname = uuid.uuid4().hex + '-' + obj_name.split('/')[-1]
 
         tmp_name = os.path.join(TMP_DIR, fname)
 
