@@ -200,6 +200,7 @@ class DataHandler(object):
         if 'parquet' in fmts:
             local_parq = local_path + '.parquet'
             remote_parq = remote_base + 'parquet/' + uid + '.parquet'
+            df.columns = df.columns.astype(str)
             df.to_parquet(
                 local_parq,
                 engine='fastparquet',
