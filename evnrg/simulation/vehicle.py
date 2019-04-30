@@ -802,18 +802,17 @@ class Vehicle(object):
 
         idle_req = idle_kw * (interval_min / 60.0)
         d = self.distance_a[self.idx]
-        idle = bool(d < 0)
 
         if self.powertrain.pev:
             req = 0
-            if idle:
-                req = min(idle_req, self.battery_state)
-                idle_req = idle_req - req
-            else:
-                req = min(d / self.powertrain.ev_eff, self.battery_state)
-                d = d - (req * self.powertrain.ev_eff)
-
-            self.battery_a[self.idx] = self.battery_state - req
+            if d < 0:
+                req = self.delta_battery(-1 * idle_req) 
+                idle_req = idle_req + req
+            elif d > 0:
+                req = self.delta_battery(-1 * (d / self.powertrain.ev_eff))
+                d = d + (req * self.powertrain.ev_eff)
+            elif not self.evse_connected:
+                self.battery_a[self.idx] = self.battery_state
 
         if self.powertrain.has_ice:
             if idle:
@@ -902,17 +901,14 @@ class Vehicle(object):
             run_next = False
             if self.idx < max_len - 1:
                 run_next = not (self.distance_a[self.idx + 1] == 0.)
+            
+            self.drive(min_per_interval, idle_load_kw)
 
             # Check for the end of a drive bracket
             if running:
-
-                self.drive(min_per_interval, idle_load_kw)
                 self.status = Status.DRIVING
 
-            else:
-                if not self.evse_connected:
-                    self.battery_a[self.idx] = self.battery_a[self.idx - 1]
-                
+            else:                
                 if self.idx > 0 and not( self.distance_a[self.idx - 1] == 0):
                     code = stop_eligibility(
                         self.distance_a,
