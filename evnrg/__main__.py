@@ -1,4 +1,4 @@
-import evnrg as evnrg
+import evnrg
 
 def main():
     """Prints a description of the package."""

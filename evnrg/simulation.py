@@ -51,12 +51,12 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
     Returns:
         A `SimulationResult` with all the relevant energy data.
     """
-    storage = DataHandler(storage_info)
+    st = DataHandler(storage_info)
 
     try:
         # First pull down the data
         
-        df = storage.read_data(ds.obj_path)
+        df = st.read_data(ds.obj_path)
 
         rows = len(df.index)
 
@@ -167,7 +167,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
 
         for fr, nm in zip([fuel_df, demand_df, battery_df, occupancy_df, deferred_df], ['fuel', 'demand', 'battery', 'occupancy', 'deferred']):
             
-            storage.upload_data(
+            st.upload_data(
                 df=fr,
                 obj_path=obj_base + nm + '/' +  ds.dataset_id,
                 formats='parquet records csv',
@@ -179,7 +179,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         raise e
 
     finally:
-        storage.cleanup()
+        st.cleanup()
 
     return SimulationResult(
         scenario_id=sc.run_id,
