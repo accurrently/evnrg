@@ -896,15 +896,7 @@ class Vehicle(object):
             if self.idx < max_len - 1:
                 run_next = not (self.distance_a[self.idx + 1] == 0.)
             
-            self.drive(min_per_interval, idle_load_kw)
-
-            # Check for the end of a drive bracket
-            if running:
-                self.status = Status.DRIVING
-
-            else:                
-                if self.idx > 0 and not( self.distance_a[self.idx - 1] == 0):
-                    
+            self.drive(min_per_interval, idle_load_kw)                    
             
             self.idx += 1
 
