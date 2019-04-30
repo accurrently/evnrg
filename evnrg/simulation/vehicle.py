@@ -907,7 +907,7 @@ class Vehicle(object):
             if running:
 
                 self.drive(min_per_interval, idle_load_kw)
-                self.code = Status.DRIVING
+                self.status = Status.DRIVING
 
             else:
                 if not self.evse_connected:
