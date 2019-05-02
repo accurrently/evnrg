@@ -478,7 +478,7 @@ def try_defer_trips(
     # Only bother with BEVs
     if fleet[vid]['type'] == BEV:
         req = battery_nrg + 100
-        nrg = battry_nrg * (1. - soc_buffer)
+        nrg = battery_nrg * (1. - soc_buffer)
         end = distance.shape[0]
         stop = end
         i = idx
