@@ -724,7 +724,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         # Create the fleet
         distance, fleet = fleet_from_df(df, sc.powertrains, sc.distribution)
 
-        fleet_size = fleet.shape[1]
+        fleet_size = fleet.shape[0]
 
         home_banks = make_evse_banks(sc.home_banks, fleet_size)
 
