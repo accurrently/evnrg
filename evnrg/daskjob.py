@@ -11,9 +11,10 @@ import logging
 from .scenario import Scenario
 from .dataset import DatasetInfo
 from .datastorage import StorageInfo
+from .job_results import JobResults
 from .simulation import run_simulation, SimulationResult
 from .numbaloop import run_simulation as nb_run_simulation
-from .job_results import JobResults
+
 
 class DaskJobRunner(object):
 
@@ -38,24 +39,21 @@ class DaskJobRunner(object):
 
         logging.info('Running Scenarios...')
 
+        sim_f = run_simulation
+
         if use_numba:
             print('Running simulations using Numba...')
-        else:
-            print('Running simulations using plain ol\' Python...')
+            sim_f = nb_run_simulation
 
 
         results = []
 
         for scenario in scenarios:
             for dataset in datasets:
-                if use_numba:
-                    
-                    sim_result = dask.delayed(nb_run_simulation)(dataset, scenario, storage_info)
-                    results.append(sim_result)
-                else:
-                    sim_result = dask.delayed(run_simulation)(dataset, scenario, storage_info)
-                    results.append(sim_result)
-          
+                                   
+                sim_result = dask.delayed(sim_f)(dataset, scenario, storage_info)
+                results.append(sim_result)
+                
         out = dask.compute(*results)
       
         return out

@@ -21,7 +21,7 @@ class EVSEType(NamedTuple):
 
 class EVSE(object):
 
-    def __init__(self, model: EVSEType = EVSEType()):
+    def __init__(self, model: EVSEType):
         self.model = model
         self.power = model.max_power
         self.throttle = 1.
