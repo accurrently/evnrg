@@ -9,6 +9,7 @@ from .evse import EVSEType, EVSE
 from .plug import DCPlug
 from .bank import QueueMode, Bank
 
+
 class Scenario(NamedTuple):
     powertrains: List[Powertrain]
     distribution: list
@@ -41,7 +42,7 @@ class Scenario(NamedTuple):
             'probability': 1.,
             'queue': QueueMode.DEFAULT,
             'evse': [
-                (EVSEType(7), 0, 0, .5)
+                EVSEType(max_power=7., dc=False, min_=1, max_=0, pro_=.5)
             ]
         }
     ]
@@ -49,25 +50,37 @@ class Scenario(NamedTuple):
         {
             'probability': .1,
             'evse': [
-                (EVSEType(50, True, .8, (DCPlug.CHADEMO, DCPlug.COMBO)), 1, 0, 0)
+                EVSEType(
+                    max_power=50.,
+                    dc=True,
+                    max_soc=.8,
+                    dc_plugs=(DCPlug.CHADEMO, DCPlug.COMBO),
+                    min_=1,
+                    max_=0,
+                    pro_=0
+                )
             ]
         },
         {
             'probability': .2,
             'evse': [
-                (EVSEType(7.0), 1, 0, 0)
+                EVSEType(max_power=7., dc=False, min_=1, max_=0, pro_=0)
             ]
         }
     ]
 
-    def make_home_banks(self, fleet_size, rows):
-        home_banks = []
-        for bank_info in self.home_banks:
+    def make_bank(self, fleet_size, rows, away=False):
+        banks = []
+        banks_list = self.home_banks
+        if away:
+            banks_list = self.away_banks
+        for bank_info in banks_list:
             evse_list = []
-            for evse_type, nmin, nmax, proportion in bank_info.get('evse'):
-                n_evse = min(nmin, max(nmax, math.floor(proportion * fleet_size)))
+            for e in bank_info.get('evse'):
+                e: EVSEType
+                n_evse = min(e.max_, max(e.min_, math.floor(e.pro_ * fleet_size)))
                 for i in range(n_evse):
-                    evse_list.append(EVSE(evse_type))
+                    evse_list.append(EVSE(e))
             bank = Bank(
                 max_power=bank_info.get('max_power', 0.),
                 capacity=bank_info.get('capacity', 0.),
@@ -76,29 +89,8 @@ class Scenario(NamedTuple):
                 queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
                 demand_profile=np.zeros(rows, dtype=np.float32),
                 occupancy_profile=np.zeros(rows, dtype=np.uint8),
-                dynamic_size=False
+                dynamic_size=away
             )
-            home_banks.append(bank)
+            banks.append(bank)
         return home_banks
-    
-    def make_away_banks(self, rows):
-        away_banks = []
-        for bank_info in self.away_banks:
-            evse_list = []
-            for evse_type in bank_info.get('evse'):
-                evse_list.append(EVSE(evse_type))
-            demand_a = np.zeros(rows, dtype=np.float32)
-            occupancy_a = np.zeros(rows, dtype=np.uint8)
-            bank = Bank(
-                max_power=bank_info.get('max_power', 0.),
-                capacity=bank_info.get('capacity', 0.),
-                evse=evse_list,
-                queue_probability=bank_info.get('probability', .2),
-                queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
-                demand_profile=np.zeros(rows, dtype=np.float32),
-                occupancy_profile=np.zeros(rows, dtype=np.uint8),
-                dynamic_size=True
-            )
-            away_banks.append(bank)
-        return away_banks
 

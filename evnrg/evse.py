@@ -10,19 +10,18 @@ __all__ = [
     'EVSEType'
 ]
 
-class EVSEType(object):
+class EVSEType(NamedTuple):
 
-    def __init__(self, 
-        max_power: float,
-        dc: bool = False,
-        max_soc: float = 1,
-        dc_plugs: tuple = (None,)):
-        self.max_power = max_power
-        self.dc = dc
-        self.max_soc = max_soc
-        self.dc_plugs = dc_plugs
-        #v2g_buffer: float = 0.20  # Arbitrage of 20% max SoC
-        #v2g_capable: bool = False
+   
+    max_power: float = 0.
+    dc: bool = False
+    max_soc: float = 1
+    dc_plugs: tuple = (None,)
+    min_: int = 0
+    max_: int = 0
+    pro_: float = 0.
+    #v2g_buffer: float = 0.20  # Arbitrage of 20% max SoC
+    #v2g_capable: bool = False
 
 
 class EVSE(object):

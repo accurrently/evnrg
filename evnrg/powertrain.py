@@ -54,7 +54,7 @@ class Powertrain(NamedTuple):
     dc_plug: int = DCPlug.NONE
     ptype: int = PType.ICEV
     fuel: Fuel = CARBOB_E10
-    ice_alternator_eff = .21
+    ice_alternator_eff: float = .21
 
     @property
     def pev(self) -> bool:
@@ -96,6 +96,8 @@ class Powertrain(NamedTuple):
         return self.batt_cap * max(0.0, min(soc, 1.0))
 
     def idle_fuel_consumption(self, load_kwh, use_gal = True) -> float:
+        if not self.ice_alternator_eff:
+            return 0
         if self.ice_eff > 0 and self.ice_alternator_eff > 0:
             nrg_needed = load_kwh / self.ice_alternator_eff
             if use_gal:

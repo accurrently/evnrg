@@ -68,12 +68,12 @@ def make_evse_banks(evse_banks: list, fleet_size: int):
         
         bank_running_power = 0
         n_in_bank = 0
-        for e, min_, max_, prop_ in bank['evse']:
+        for e in bank['evse']:
             e: EVSEType
-            copies = int(fleet_size * prop_)
-            if max_ > 0:
-                copies = int(min(max_, copies))
-            copies = int(max(min_, copies))
+            copies = int(fleet_size * e.pro_)
+            if e.max_ > 0:
+                copies = int(min(e.max_, copies))
+            copies = int(max(e.min_, copies))
 
             for i in range(copies):
                 bank_ids.append(bank_id),
@@ -182,7 +182,7 @@ def make_fleet(
     return a
 
 def fleet_from_df(df: pd.DataFrame, powertrains: list,
-                 probabilities: list):
+                 probabilities: list = []):
         
         
     vnames = df.columns
@@ -191,17 +191,22 @@ def fleet_from_df(df: pd.DataFrame, powertrains: list,
 
     pt_assignments = None
 
-    if isinstance(powertrains, list):
+    # Explicit assignment
+    if (not probabilities) and len(powertrains) == size:
+        pt_assignments = [i for i in range(len(powertrains))]
+
+    elif isinstance(powertrains, list):
         for pt in powertrains:
             if not isinstance(pt, Powertrain):
                 raise TypeError()
-
+        
         trains = powertrains
         num_trains = len(powertrains)
         num_probs = len(probabilities)
         probs = probabilities
         if not probabilities:
-            probs = [float(1.0 / num_trains) for i in range(num_trains)]
+            if len(powertrains) < size:
+                probs = [float(1.0 / num_trains) for i in range(num_trains)]
         elif num_probs < num_trains:
             current_sum = sum(probs)
             if current_sum < 1:
@@ -285,6 +290,8 @@ def pop_low_score(queue):
 
 @nb.njit(cache=True)
 def bank_dequeue(queue, idx):
+    if idx > queue.shape[0]:
+        raise IndexError
     queue[idx] = np.nan
     return queue
 
@@ -437,8 +444,6 @@ def defer_next_trip(distance, idx, vid, deferred):
         deferred[i, vid] = distance[i, vid]
         distance[i, vid] = 0.
         i += 1
-
-
 
 @nb.njit(cache=True)
 def defer_to_target(distance, deferred):
