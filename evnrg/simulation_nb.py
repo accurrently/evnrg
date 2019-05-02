@@ -3,13 +3,15 @@ import math
 from typing import NamedTuple
 import uuid
 
+from timeit import default_timer as timer
+
 import numba as nb
 import numpy as np
 import pandas as pd
 
 
 from .scenario import Scenario
-from .datastorage import DatasetInfo, StorageInfo, DataHandler
+from .datastorage import DatasetInfo, StorageInfo, DataHandler, UploadResult
 from .evse import EVSE, EVSEType
 from .bank import Bank
 from .powertrain import Powertrain, PType
@@ -713,6 +715,10 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
     Returns:
         A `SimulationResult` with all the relevant energy data.
     """
+
+    sim_start = pd.Timestamp.now()
+
+    
     st = DataHandler(storage_info)
 
     try:
@@ -752,6 +758,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
 
         use_soc_queue = False
 
+        timer_begin = timer()
         output = simulation_loop(
             distance,
             fleet,
@@ -765,6 +772,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             use_soc_queue,
             sc.soc_deferment_buffer
         )
+        timer_end = timer()
 
         evse_names = []
         for i in range(home_banks.shape[0]):
@@ -790,18 +798,34 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         dfs = [fuel_df, demand_df, battery_df, occupancy_df, deferred_df, energy_df]
         lbls = ['fuel', 'demand', 'battery', 'occupancy', 'deferred', 'energy']
 
-        results = []
+        results =  {
+            'run_start': sim_start,
+            'scenario_id': sc.run_id,
+            'fleet_id': ds.dataset_id,
+            'execution_time': pd.Timedelta(timer_end-timer_begin, 's'),
+            'execution_time_sec': timer_end-timer_begin,
+            'fleet_size': fleet_size,
+            'rows': nrows,
+            'interval_length_min': interval_len
+        }
+
+        upload_uid = ''
 
         for fr, nm in zip(dfs, lbls):
+            opath = obj_base + nm + '/' +  ds.dataset_id
             
             result = st.upload_data(
                 df=fr,
-                obj_path=obj_base + nm + '/' +  ds.dataset_id,
+                obj_path=opath,
                 formats='json records csv',
             )
-            if result:
-                results.extend(result)
 
+            if result:
+                res: UploadResult
+                for res in result:
+                    results['upload_uid'] = res.uid
+                    k = '{}_{}'.format(nm, res.filetype)
+                    results[k] = res.remote_path
         
         
 

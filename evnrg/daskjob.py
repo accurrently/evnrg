@@ -7,6 +7,7 @@ import uuid
 from typing import List
 import math
 import logging
+from timeit import default_timer as timer
 
 from .scenario import Scenario
 from .dataset import DatasetInfo
@@ -53,9 +54,13 @@ class DaskJobRunner(object):
                                    
                 sim_result = dask.delayed(sim_f)(dataset, scenario, storage_info)
                 results.append(sim_result)
-                
-        out = dask.compute(*results)
+        
+        
+        records = dask.compute(*results)
+        
+
+        
       
-        return out
+        return pd.DataFrame(records)
     
     
