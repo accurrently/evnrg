@@ -718,13 +718,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             if mask_rule.get('type') == 'time':
                 begin = mask_rule.get('begin', '23:55')
                 end = mask_rule.get('end', '00:00')
-                mask_df[df.between_time(begin, end).index] = int(Status.HOME_ELIGIBLE)
-
-        rules = EligibilityRules(
-            away_threshold=round(sc.away_threshold_min/interval_len),
-            home_threshold=round(sc.home_threshold_min/interval_len),
-            mask=mask_df.values.astype(np.uint8)
-        )
+                mask[df.between_time(begin, end).index] = True
 
         # Create the fleet
         distance, fleet = fleet_from_df(df, sc.powertrains, sc.distribution)
