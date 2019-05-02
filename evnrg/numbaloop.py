@@ -633,12 +633,12 @@ def simulation_loop(
                         soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
                         
                         # Home stop
-                        if stop_time >= home_thresh or mask[idx]:
+                        if stop_time >= home_thresh_min or mask[idx]:
                             
                             bank_enqueue(idx, vid, soc, fleet, queue, queue_soc)
                         
                         # Away stop
-                        elif stop_time >= away_thresh:
+                        elif stop_time >= away_thresh_min:
                             connect_evse(vid, soc, fleet, away_bank, True)
                     
                     # About to depart
