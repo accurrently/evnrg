@@ -653,8 +653,8 @@ def simulation_loop(
                             battery_state[idx - 1, vid],
                             interval_min,
                             idle_load_kw,
-                            away_thresh,
-                            home_thresh,
+                            away_thresh_min,
+                            home_thresh_min,
                             .2
                         )
                     
