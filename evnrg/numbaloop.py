@@ -633,7 +633,7 @@ def simulation_loop(
                         soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
                         
                         # Home stop
-                        if stop_time >= home_thresh_min or mask[idx]:
+                        if stop_time >= home_thresh_min or home_mask[idx]:
                             
                             bank_enqueue(idx, vid, soc, fleet, queue, queue_soc)
                         
@@ -649,7 +649,7 @@ def simulation_loop(
                             fleet,
                             distance,
                             deferred,
-                            mask,
+                            home_mask,
                             battery_state[idx - 1, vid],
                             interval_min,
                             idle_load_kw,
