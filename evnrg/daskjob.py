@@ -12,6 +12,7 @@ from .scenario import Scenario
 from .dataset import DatasetInfo
 from .datastorage import StorageInfo
 from .simulation import run_simulation, SimulationResult
+from .numbaloop import run_simulation as nb_run_simulation
 from .job_results import JobResults
 
 class DaskJobRunner(object):
@@ -31,7 +32,7 @@ class DaskJobRunner(object):
             self.client = Client(self.scheduler_address)
     
     def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
-                        storage_info: StorageInfo, print_client_info = True):
+                        storage_info: StorageInfo, print_client_info = True, numba = True):
 
         client = self.client
 
@@ -41,11 +42,15 @@ class DaskJobRunner(object):
 
         for scenario in scenarios:
             for dataset in datasets:
-                sim_result = dask.delayed(run_simulation)(dataset, scenario, storage_info)
-                results.append(sim_result)
+                if numba:
+                    sim_result = dask.delayed(nb_run_simulation)(dataset, scenario, storage_info)
+                    results.append(sim_result)
+                else:
+                    sim_result = dask.delayed(run_simulation)(dataset, scenario, storage_info)
+                    results.append(sim_result)
           
         out = dask.compute(*results)
       
-        return JobResults(out)
+        return out
     
     
