@@ -313,11 +313,11 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
                 # DCFC
                 if bank[i]['dc'] and (fleet[vid]['dc_max'] > 0):
                     can_connect = False
-                    if (fleet[vid]['dc_plug'] == DCPLUG_CHADEMO) and bank[i]['dc_chademo']:
+                    if (fleet[vid]['dc_plug'] == DCPLUG_CHADEMO) and bank[i]['plug_chademo']:
                         can_connect = True
-                    elif (fleet[vid]['dc_plug'] == DCPLUG_COMBO) and bank[i]['dc_combo']:
+                    elif (fleet[vid]['dc_plug'] == DCPLUG_COMBO) and bank[i]['plug_combo']:
                         can_connect = True
-                    elif (fleet[vid]['dc_plug'] == DCPLUG_TESLA) and bank[i]['dc_tesla']:
+                    elif (fleet[vid]['dc_plug'] == DCPLUG_TESLA) and bank[i]['plug_tesla']:
                         can_connect = True
                     
                     if can_connect:
