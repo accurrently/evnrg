@@ -9,7 +9,6 @@ from .evse import EVSEType, EVSE
 from .plug import DCPlug
 from .bank import QueueMode, Bank
 
-
 class Scenario(NamedTuple):
     powertrains: List[Powertrain]
     distribution: list
