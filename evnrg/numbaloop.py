@@ -302,7 +302,11 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
     connected_power = 0
 
     for i in evse_ids:
-        home_avail = not (i in fleet[:]['home_evse_id'])
+        home_avail = True
+        for j in range(fleet.shape[0]):
+            if i == fleet[j]['home_evse_id']:
+                home_avail = False
+                break
 
         if ((home_avail and not away_bank)  or away_bank) and (random.random() <= bank[i]['probability']):
             if soc < bank[i]['max_soc']:
