@@ -11,7 +11,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-
+from evnrg import __version__
 # from requirements import requirements, dependency_links
 
 requirements = [
@@ -56,7 +56,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/accurrently/evnrg',
-    version='0.1.7-1',
+    version=__version__,
     zip_safe=False,
     dependency_links=dependency_links
 )
