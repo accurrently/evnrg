@@ -473,7 +473,7 @@ def try_defer_trips(
     idle_load_kw,
     away_thresh,
     home_thresh,
-    soc_buffer = .2 ):
+    soc_buffer):
 
     # Only bother with BEVs
     if fleet[vid]['type'] == BEV:
