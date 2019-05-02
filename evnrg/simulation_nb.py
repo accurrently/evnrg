@@ -823,7 +823,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             'execution_time': pd.Timedelta(timer_end-timer_begin, 's'),
             'execution_time_sec': timer_end-timer_begin,
             'fleet_size': fleet_size,
-            'rows': nrows,
+            'rows': rows,
             'interval_length_min': interval_len
         }
 
