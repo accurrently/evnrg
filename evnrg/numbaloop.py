@@ -35,7 +35,7 @@ DCPLUG_TESLA = 8
 DCPLUG_NONE = 0 # None Type
 
 evse_ = np.dtype([
-    ('bank_id', np.int64, 1),
+    ('bank_id', np.uint64, 1),
     ('power_max', np.float32, 1),
     ('bank_power_max', np.float32, 1),
     ('power', np.float32, 1),
@@ -140,16 +140,16 @@ DCPLUG_TYPE = 7
 CONNECTED_EVSE_ID = 8
 
 vehicle_ = np.dtype([
-    ('type', np.int32, 1),
+    ('type', np.uint32, 1),
     ('ice_eff', np.float32, 1),
     ('ice_gal_kwh', np.float32, 1),
     ('ev_eff', np.float32, 1),
     ('ev_max_batt', np.float32, 1),
     ('ac_max', np.float32, 1),
     ('dc_max', np.float32, 1),
-    ('dc_plug', np.int32, 1),
-    ('home_evse_id', np.int64, 1),
-    ('away_evse_id', np.int64, 1)
+    ('dc_plug', np.uint32, 1),
+    ('home_evse_id', np.uint64, 1),
+    ('away_evse_id', np.uint64, 1)
 ])
 
 nb_vehicle_ = nb.from_dtype(vehicle_)
@@ -342,8 +342,9 @@ def disconnect_evse(vid, fleet, bank, away_bank = False):
     else:
         eid = fleet[vid]['home_evse_id']
     if not np.nan(eid):
+        eid = np.uint64(eid)
         if not away_bank:
-            bank[eid]['power'] = 0
+            bank[eid]['power'] = 0.
         if away_bank:
             fleet[vid]['away_evse_id'] = np.nan
         else:
