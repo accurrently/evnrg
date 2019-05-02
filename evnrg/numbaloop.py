@@ -629,7 +629,7 @@ def simulation_loop(
 
                     # New stop
                     if not (distance[idx -1, vid] == 0.):
-                        stop_time = stop_length_min(distance, idx, vid, min_per_interval)
+                        stop_time = stop_length_min(distance, idx, vid, interval_min)
                         soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
                         
                         # Home stop
@@ -651,7 +651,7 @@ def simulation_loop(
                             deferred,
                             mask,
                             battery_state[idx - 1, vid],
-                            min_per_interval,
+                            interval_min,
                             idle_load_kw,
                             away_thresh,
                             home_thresh,
@@ -674,11 +674,11 @@ def simulation_loop(
             home_occupied += 1
         
         # Charge connected vehicles
-        charge_connected(idx, battery_state, fleet, home_bank, away_bank, min_per_interval)
+        charge_connected(idx, battery_state, fleet, home_bank, away_bank, interval_min)
 
-        evse_usage(idx, fleet, home_bank, elec_demand, elec_energy, occupancy, utilization, min_per_interval)
+        evse_usage(idx, fleet, home_bank, elec_demand, elec_energy, occupancy, utilization, interval_min)
 
-        drive(idx, distance, battery_state, fuel_use, fleet, idle_load_kw, min_per_interval)
+        drive(idx, distance, battery_state, fuel_use, fleet, idle_load_kw, interval_min)
     
     return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization)
 
