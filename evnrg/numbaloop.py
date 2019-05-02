@@ -342,13 +342,12 @@ def disconnect_evse(vid, fleet, bank, away_bank = False):
     else:
         eid = fleet[vid]['home_evse_id']
     if not np.nan(eid):
-        eid = np.uint64(eid)
         if not away_bank:
-            bank[eid]['power'] = 0.
+            bank[nb.uint64(eid)]['power'] = 0.
         if away_bank:
-            fleet[vid]['away_evse_id'] = np.nan
+            fleet[nb.uint64(eid)]['away_evse_id'] = np.nan
         else:
-            fleet[vid]['home_evse_id'] = np.nan           
+            fleet[nb.uint64(eid)]['home_evse_id'] = np.nan           
     return eid
 
 @nb.njit(cache=True)
