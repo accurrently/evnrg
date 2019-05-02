@@ -532,7 +532,7 @@ def drive(idx, distance, battery_state, fuel_use, fleet, idle_load_kw, min_per_i
                 if (fleet[vid]['type'] in (BEV, PHEV)) and ev_eff > 0:
                     nrg_req = d / ev_eff
                     batt_used = min(batt, nrg_req)
-                    d = d - (nrg_used * ev_eff)
+                    d = d - (batt_used * ev_eff)
                 
                 if  (fleet[vid]['type'] in (ICEV, PHEV)) and ice_eff > 0:
                     fuel_used = d / ice_eff
