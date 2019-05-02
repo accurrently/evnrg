@@ -89,7 +89,7 @@ def make_evse_banks(evse_banks: list, fleet_size: int):
                 bank_running_power += e.max_power
                 n_in_bank += 1
         bank_id += 1
-        bank_power_max_val = bank,get('max_power', bank_running_power)
+        bank_power_max_val = bank.get('max_power', bank_running_power)
         bank_power_max.extend([bank_power_max_val for i in range(n_in_bank)])
     
     a = np.empty(n_evse, dtype=evse_)
