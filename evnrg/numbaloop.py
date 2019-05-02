@@ -595,7 +595,8 @@ def simulation_loop(
     home_thresh_min: float,
     away_thresh_min: float,
     idle_load_kw: float,
-    queue_soc: bool = False):
+    queue_soc: bool = False,
+    soc_buffer: float = 0.2):
 
     nrows = distance.shape[0]
     nvehicles = fleet.shape[0]
@@ -662,7 +663,7 @@ def simulation_loop(
                             idle_load_kw,
                             away_thresh_min,
                             home_thresh_min,
-                            .2
+                            soc_buffer
                         )
                     
         # Process queues and charge
@@ -751,7 +752,8 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             sc.home_threshold_min,
             sc.away_threshold_min,
             sc.idle_load_kw,
-            use_soc_queue
+            use_soc_queue,
+            sc.soc_deferment_buffer
         )
 
         evse_names = []
