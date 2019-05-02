@@ -68,8 +68,9 @@ def make_evse_banks(evse_banks: list, fleet_size: int):
         
         bank_running_power = 0
         n_in_bank = 0
+        e: EVSEType
         for e in bank['evse']:
-            e: EVSEType
+            
             copies = int(fleet_size * e.pro_)
             if e.max_ > 0:
                 copies = int(min(e.max_, copies))
