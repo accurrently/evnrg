@@ -18,9 +18,9 @@ class PType(enum.IntEnum):
     * `PHEV`: Plug-in hybrids (i.e. Chevrolet Volt)
     * `BEV`: Battery electric vehicles (i.e. Tesla Model 3)
     """
-    ICEV = enum.auto()
-    PHEV = enum.auto()
-    BEV = enum.auto()
+    ICEV = 0
+    PHEV = 1
+    BEV = 2
 
 
 class Powertrain(NamedTuple):

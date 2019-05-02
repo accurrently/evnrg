@@ -50,13 +50,13 @@ class Scenario(NamedTuple):
         {
             'probability': .1,
             'evse': [
-                EVSEType(50, True, .8, (DCPlug.CHADEMO, DCPlug.COMBO))
+                (EVSEType(50, True, .8, (DCPlug.CHADEMO, DCPlug.COMBO)), 1, 0, 0)
             ]
         },
         {
             'probability': .2,
             'evse': [
-                EVSEType(7.0)
+                (EVSEType(7.0), 1, 0, 0)
             ]
         }
     ]

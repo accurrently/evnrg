@@ -64,8 +64,8 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
 
         # Basic rules creation for now
 
-        mask_df = pd.DataFrame(
-            np.zeros(df.values.shape, dtype=np.uint8),
+        mask_df = pd.Series(
+            np.full(len(df.index), False, dtype=np.dtype(bool)),
             index=df.index
         )
 
@@ -73,13 +73,13 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             if mask_rule.get('type') == 'time':
                 begin = mask_rule.get('begin', '23:55')
                 end = mask_rule.get('end', '00:00')
-                mask_df.loc[df.between_time(begin, end).index] = int(Status.HOME_ELIGIBLE)
+                mask_df.loc[df.between_time(begin, end).index] = True
 
-        rules = EligibilityRules(
-            away_threshold=round(sc.away_threshold_min/interval_len),
-            home_threshold=round(sc.home_threshold_min/interval_len),
-            mask=mask_df.values.astype(np.uint8)
-        )
+        #rules = EligibilityRules(
+        #    away_threshold=round(sc.away_threshold_min/interval_len),
+        #    home_threshold=round(sc.home_threshold_min/interval_len),
+        #    mask=mask_df.values.astype(np.uint8)
+        #)
 
         # Create the fleet
         fleet = Fleet(df, sc.powertrains, sc.distribution, rules)
