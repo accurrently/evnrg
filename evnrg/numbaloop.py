@@ -436,11 +436,15 @@ def defer_next_trip(distance, idx, vid, deferred):
     while (i < end) and (not (distance[i, vid] == 0.)):
         deferred[i, vid] = distance[i, vid]
         distance[i, vid] = 0.
-        i += 1  
+        i += 1
+
+
 
 @nb.njit(cache=True)
 def defer_to_target(distance, deferred):
-    deferred[:] += np.clip(distance[:], 0)
+    for i in range(distance.shape[0]):
+        if distance[i] >= 0:
+            deferred[i] += distance[i]
     distance[:] = 0.
 
 
