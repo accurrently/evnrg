@@ -32,17 +32,24 @@ class DaskJobRunner(object):
             self.client = Client(self.scheduler_address)
     
     def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
-                        storage_info: StorageInfo, print_client_info = True, numba = True):
+                        storage_info: StorageInfo, use_numba = True):
 
         client = self.client
 
         logging.info('Running Scenarios...')
 
+        if use_numba:
+            print('Running simulations using Numba...')
+        else:
+            print('Running simulations using plain ol\' Python...')
+
+
         results = []
 
         for scenario in scenarios:
             for dataset in datasets:
-                if numba:
+                if use_numba:
+                    
                     sim_result = dask.delayed(nb_run_simulation)(dataset, scenario, storage_info)
                     results.append(sim_result)
                 else:
