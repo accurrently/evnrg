@@ -312,19 +312,23 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
             if soc < bank[i]['max_soc']:
                 # DCFC
                 if bank[i]['dc'] and (fleet[vid]['dc_max'] > 0):
-                    if fleet[vid]['dc_plug'] in (DCPLUG_CHADEMO, DCPLUG_COMBO, DCPLUG_TESLA):
-                        if (((fleet[vid]['dc_plug'] == DCPLUG_CHADEMO) and bank[i]['dc_chademo']) or
-                            ((fleet[vid]['dc_plug'] == DCPLUG_COMBO) and bank[i]['dc_combo']) or
-                            ((fleet[vid]['dc_plug'] == DCPLUG_TESLA) and bank[i]['dc_tesla']) ):
+                    can_connect = False
+                    if (fleet[vid]['dc_plug'] == DCPLUG_CHADEMO) and bank[i]['dc_chademo']:
+                        can_connect = True
+                    elif (fleet[vid]['dc_plug'] == DCPLUG_COMBO) and bank[i]['dc_combo']:
+                        can_connect = True
+                    elif (fleet[vid]['dc_plug'] == DCPLUG_TESLA) and bank[i]['dc_tesla']:
+                        can_connect = True
+                    
+                    if can_connect:
+                        connected_power = min(fleet[vid]['dc_max'], bank[i]['power_max'])
+                        bank[i]['power'] = connected_power
+                        if away_bank:
+                            fleet[vid]['away_evse_id'] = i
+                        else:
+                            fleet[vid]['home_evse_id'] = i
 
-                            connected_power = min(fleet[vid]['dc_max'], bank[i]['power_max'])
-                            bank[i]['power'] = connected_power
-                            if away_bank:
-                                fleet[vid]['away_evse_id'] = i
-                            else:
-                                fleet[vid]['home_evse_id'] = i
-
-                            break
+                        break
                 # AC
                 else:
                     connected_power = min(fleet[vid]['ac_max'], bank[i]['power_max'])
