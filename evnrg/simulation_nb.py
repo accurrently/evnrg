@@ -811,7 +811,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         lbls = ['fuel', 'demand', 'battery', 'occupancy', 'deferred', 'energy']
 
 
-        n_ac, n_dc, installed_capacity = installed_capacity(home_banks)
+        n_ac, n_dc, pow_cap = installed_capacity(home_banks)
 
         results =  {
             'run_start': sim_start,
@@ -819,7 +819,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             'fleet_id': ds.dataset_id,
             'ac_evse': n_ac,
             'dc_evse': n_dc,
-            'installed_evse_capacity': installed_capacity,
+            'installed_evse_capacity': pow_cap,
             'execution_time': pd.Timedelta(timer_end-timer_begin, 's'),
             'execution_time_sec': timer_end-timer_begin,
             'fleet_size': fleet_size,
