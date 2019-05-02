@@ -302,9 +302,9 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
     connected_power = 0
 
     for i in evse_ids:
-        home_avail = i in fleet[:]['home_evse_id']
+        home_avail = not (i in fleet[:]['home_evse_id'])
 
-        if (home_avail or away_bank) and (random.random() <= bank[i]['probability']):
+        if ((home_avail and not away_bank)  or away_bank) and (random.random() <= bank[i]['probability']):
             if soc < bank[i]['max_soc']:
                 # DCFC
                 if bank[i]['dc'] and (fleet[vid]['dc_max'] > 0):
