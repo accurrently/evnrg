@@ -289,7 +289,7 @@ def bank_dequeue(queue, idx):
     return queue
 
 @nb.njit(cache=True)
-def soc(vid, fleet, battery_nrg):
+def get_soc(vid, fleet, battery_nrg):
     out = 0.
     if fleet[vid]['ev_max_batt'] > 0:
         out = battery_nrg / fleet[vid]['ev_max_batt']
@@ -364,7 +364,7 @@ def disconnect_completed(idx, battery_state, fleet, bank, away_bank = False):
             
             if not (np.isnan(eid)):
 
-                soc = soc(vid, fleet, nrg)
+                soc = get_soc(vid, fleet, nrg)
                 if soc >= bank[eid]['max_soc']:
                     disconnect_evse(vid, fleet, bank, away_bank)
 
@@ -630,7 +630,7 @@ def simulation_loop(
                     # New stop
                     if not (distance[idx -1, vid] == 0.):
                         stop_time = stop_length_min(distance, idx, vid, min_per_interval)
-                        soc = soc(vid, fleet, battery_state[idx - 1, vid])
+                        soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
                         
                         # Home stop
                         if stop_time >= home_thresh or mask[idx]:
@@ -667,7 +667,7 @@ def simulation_loop(
             if np.isnan(vid):
                 break
             
-            soc = soc(vid, fleet, battery_state[idx - 1, vid])
+            soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
             
             connect_evse(vid, soc, fleet, home_bank, False )
 
