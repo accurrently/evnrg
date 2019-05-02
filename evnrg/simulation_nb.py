@@ -702,7 +702,19 @@ def simulation_loop(
     
     return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization)
 
-
+@nb.njit
+def installed_capacity(bank):
+    n_ac = 0
+    n_dc = 0
+    installed_capacity = 0
+    for i in range(bank.shape[0]):
+        if bank[i]['power_max'] > 0:
+            installed_capacity += bank[i]['power_max']
+        if bank[i]['dc']:
+            n_dc += 1
+        else:
+            n_ac += 1
+    return (n_ac, n_dc, installed_capacity)
 
 
 def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
@@ -798,10 +810,16 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         dfs = [fuel_df, demand_df, battery_df, occupancy_df, deferred_df, energy_df]
         lbls = ['fuel', 'demand', 'battery', 'occupancy', 'deferred', 'energy']
 
+
+        n_ac, n_dc, installed_capacity = installed_capacity(home_banks)
+
         results =  {
             'run_start': sim_start,
             'scenario_id': sc.run_id,
             'fleet_id': ds.dataset_id,
+            'ac_evse': n_ac,
+            'dc_evse': n_dc,
+            'installed_evse_capacity': installed_capacity,
             'execution_time': pd.Timedelta(timer_end-timer_begin, 's'),
             'execution_time_sec': timer_end-timer_begin,
             'fleet_size': fleet_size,
