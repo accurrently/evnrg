@@ -280,7 +280,7 @@ def pop_low_score(queue):
             elif x < queue[idx]:
                 idx = i
     if not (np.isnan(idx)):
-        queue[idx] = np.nan
+        queue[nb.int64(idx)] = np.nan
     return idx
 
 @nb.njit(cache=True)
@@ -365,15 +365,15 @@ def disconnect_completed(idx, battery_state, fleet, bank, away_bank = False):
             if not (np.isnan(eid)):
 
                 soc = get_soc(vid, fleet, nrg)
-                if soc >= bank[eid]['max_soc']:
+                if soc >= bank[nb.int64(eid)]['max_soc']:
                     disconnect_evse(vid, fleet, bank, away_bank)
 
 @nb.njit
 def charge(idx, battery_state, vid, fleet, eid, bank):
     if not (np.isnan(eid)):
-        power = bank[eid]['power']
+        power = bank[nb.int64(eid)]['power']
         potential = (min_per_interval / 60.0) * power
-        max_nrg = fleet[vid]['ev_max_batt'] * bank[eid]['max_soc']
+        max_nrg = fleet[vid]['ev_max_batt'] * bank[nb.int64(eid)]['max_soc']
         prev = fleet[vid]['ev_max_batt']
         if idx > 0:
             prev = battery_state[idx - 1, vid]
@@ -388,9 +388,9 @@ def charge_connected(idx, battery_state, fleet, home_bank, away_bank, min_per_in
         home_eid = fleet[i]['home_evse_id']
         away_eid = fleet[i]['away_evse_id']
         if not (np.isnan(home_eid)):
-            charge(idx, battery_state, i, fleet, home_eid, home_bank)
+            charge(idx, battery_state, i, fleet, np.int64(home_eid), home_bank)
         elif not (np.isnan(away_eid)):
-            charge(idx, battery_state, i, fleet, away_eid, away_bank)
+            charge(idx, battery_state, i, fleet, np.int64(away_eid), away_bank)
     return battery_state
 
 @nb.njit(cache=True)
