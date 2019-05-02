@@ -140,16 +140,16 @@ DCPLUG_TYPE = 7
 CONNECTED_EVSE_ID = 8
 
 vehicle_ = np.dtype([
-    ('type', np.uint32, 1),
+    ('type', np.int32, 1),
     ('ice_eff', np.float32, 1),
     ('ice_gal_kwh', np.float32, 1),
     ('ev_eff', np.float32, 1),
     ('ev_max_batt', np.float32, 1),
     ('ac_max', np.float32, 1),
     ('dc_max', np.float32, 1),
-    ('dc_plug', np.uint32, 1),
-    ('home_evse_id', np.uint64, 1),
-    ('away_evse_id', np.uint64, 1)
+    ('dc_plug', np.int32, 1),
+    ('home_evse_id', np.int64, 1),
+    ('away_evse_id', np.int64, 1)
 ])
 
 nb_vehicle_ = nb.from_dtype(vehicle_)
@@ -176,8 +176,8 @@ def make_fleet(
     a[:]['ac_max'] = ac_maxes
     a[:]['dc_max'] = dc_maxes
     a[:]['dc_plug'] = dcplugs
-    a[:]['home_evse_id'] = np.nan
-    a[:]['away_evse_id'] = np.nan
+    a[:]['home_evse_id'] = -1
+    a[:]['away_evse_id'] = -1
     
     return a
 
@@ -271,15 +271,15 @@ def bank_enqueue(idx, vid, soc, fleet, queue, queue_soc):
 
 @nb.njit(cache=True)
 def pop_low_score(queue):
-    idx = np.nan
+    idx = -1
     for i in range(queue.shape[0]):
         x = queue[i]
         if not np.isnan(x):
-            if idx == None:
+            if idx == -1:
                 idx = i
             elif x < queue[idx]:
                 idx = i
-    if not (np.isnan(idx)):
+    if (not (np.isnan(idx))) and (idx >= 0):
         queue[nb.int64(idx)] = np.nan
     return idx
 
@@ -299,13 +299,12 @@ def get_soc(vid, fleet, battery_nrg):
 def connect_evse(vid, soc, fleet, bank, away_bank = False):
 
     evse_ids = range(bank.shape[0])
-
-    home_avail = np.isin(fleet[:]['home_evse_id'], evse_ids, invert=True)
-
     connected_power = 0
 
     for i in evse_ids:
-        if (home_avail[i] or away_bank) and (random.random() <= bank[i]['probability']):
+        home_avail = i in fleet[:]['home_evse_id']
+
+        if (home_avail or away_bank) and (random.random() <= bank[i]['probability']):
             if soc < bank[i]['max_soc']:
                 # DCFC
                 if bank[i]['dc'] and (fleet[vid]['dc_max'] > 0):
@@ -336,18 +335,18 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
 
 @nb.njit(cache=True)
 def disconnect_evse(vid, fleet, bank, away_bank = False):
-    eid = np.nan
+    eid = -1
     if away_bank:
         eid = fleet[vid]['away_evse_id']
     else:
         eid = fleet[vid]['home_evse_id']
-    if not (np.isnan(eid)):
+    if eid >= 0):
         if not away_bank:
             bank[nb.uint64(eid)]['power'] = 0.
         if away_bank:
-            fleet[nb.uint64(eid)]['away_evse_id'] = np.nan
+            fleet[vid]['away_evse_id'] = -1
         else:
-            fleet[nb.uint64(eid)]['home_evse_id'] = np.nan           
+            fleet[vid]['home_evse_id'] = -1          
     return eid
 
 @nb.njit(cache=True)
@@ -355,14 +354,14 @@ def disconnect_completed(idx, battery_state, fleet, bank, away_bank = False):
     for vid in range(fleet.shape[0]):
         if idx > 0:
             nrg = battery_state[idx - 1, vid]
-            eid = np.nan
+            eid = -1
 
             if away_bank:
                 eid = fleet[vid]['away_evse_id']
             else:
                 eid = fleet[vid]['home_evse_id']
             
-            if not (np.isnan(eid)):
+            if eid >= 0:
 
                 soc = get_soc(vid, fleet, nrg)
                 if soc >= bank[nb.int64(eid)]['max_soc']:
@@ -370,7 +369,7 @@ def disconnect_completed(idx, battery_state, fleet, bank, away_bank = False):
 
 @nb.njit
 def charge(idx, battery_state, vid, fleet, eid, bank):
-    if not (np.isnan(eid)):
+    if nb.int64(eid) >= 0:
         power = bank[nb.int64(eid)]['power']
         potential = (min_per_interval / 60.0) * power
         max_nrg = fleet[vid]['ev_max_batt'] * bank[nb.int64(eid)]['max_soc']
@@ -387,9 +386,9 @@ def charge_connected(idx, battery_state, fleet, home_bank, away_bank, min_per_in
     for i in range(fleet.shape[0]):
         home_eid = fleet[i]['home_evse_id']
         away_eid = fleet[i]['away_evse_id']
-        if not (np.isnan(home_eid)):
+        if home_eid >= 0:
             charge(idx, battery_state, i, fleet, np.int64(home_eid), home_bank)
-        elif not (np.isnan(away_eid)):
+        elif away_eid >= 0:
             charge(idx, battery_state, i, fleet, np.int64(away_eid), away_bank)
     return battery_state
 
@@ -560,7 +559,7 @@ def evse_usage(idx, fleet, bank, demand, energy, occupancy, utilization, min_per
     
     for vid in range(fleet.shape[0]):
         eid = fleet[vid]['home_evse_id']
-        if not ( np.nan(eid) ):
+        if eid >= 0:
             power = bank[eid]['power']
             total_power += power
             total_occupied += 1
