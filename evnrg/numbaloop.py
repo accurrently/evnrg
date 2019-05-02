@@ -340,7 +340,7 @@ def disconnect_evse(vid, fleet, bank, away_bank = False):
         eid = fleet[vid]['away_evse_id']
     else:
         eid = fleet[vid]['home_evse_id']
-    if eid >= 0):
+    if eid >= 0:
         if not away_bank:
             bank[nb.uint64(eid)]['power'] = 0.
         if away_bank:
