@@ -185,73 +185,75 @@ def fleet_from_df(df: pd.DataFrame, powertrains: list,
                  probabilities: list):
         
         
-        vnames = df.columns
+    vnames = df.columns
 
-        size = len(df.columns)
+    size = len(df.columns)
 
-        if isinstance(powertrains, list):
-            for pt in powertrains:
-                if not isinstance(pt, Powertrain):
-                    raise TypeError()
+    pt_assignments = None
 
-            trains = powertrains
-            num_trains = len(powertrains)
-            num_probs = len(probabilities)
-            probs = probabilities
-            if not probabilities:
-                probs = [float(1.0 / num_trains) for i in range(num_trains)]
-            elif num_probs < num_trains:
-                current_sum = sum(probs)
-                if current_sum < 1:
-                    remaining = num_trains - num_probs
-                    distribution = (1 - current_sum) / remaining
-                    probs.extend([distribution for i in range(remaining)])
-                else:
-                    trains = powertrains[:num_probs]
-            elif num_trains < num_probs:
-                probs = probabilities[:num_trains]
+    if isinstance(powertrains, list):
+        for pt in powertrains:
+            if not isinstance(pt, Powertrain):
+                raise TypeError()
 
-            pt_assignments = np.random.choice(
-                range(num_trains),
-                size=size,
-                replace=True,
-                p=np.array(probs)
-            ))
+        trains = powertrains
+        num_trains = len(powertrains)
+        num_probs = len(probabilities)
+        probs = probabilities
+        if not probabilities:
+            probs = [float(1.0 / num_trains) for i in range(num_trains)]
+        elif num_probs < num_trains:
+            current_sum = sum(probs)
+            if current_sum < 1:
+                remaining = num_trains - num_probs
+                distribution = (1 - current_sum) / remaining
+                probs.extend([distribution for i in range(remaining)])
+            else:
+                trains = powertrains[:num_probs]
+        elif num_trains < num_probs:
+            probs = probabilities[:num_trains]
 
-            vtypes = []
-            ice_effs = []
-            ice_gal_kwhs = []
-            ev_effs = []
-            ev_max_batts = []
-            ac_maxes = [] 
-            dc_maxes = []
-            dcplugs = []
-
-            for pt in pt_assignments:
-                pt: Powertrain
-                    
-                    vtypes.append(int(pt.ptype)),
-                    ice_effs.append(pt.ice_eff)
-                    ice_gal_kwhs.append(pt.idle_fuel_consumption(1))
-                    ev_effs.append(pt.ev_eff)
-                    ev_max_batts.append(pt.batt_cap)
-                    ac_maxes.append(pt.ac_power)
-                    dc_maxes.append(pt.dc_power)
-                    dcplugs.append(pt.dc_plug)
-            
-        fleet = make_fleet(
-            vtypes,
-            ice_effs,
-            ice_gal_kwhs,
-            ev_effs,
-            ev_max_batts,
-            ac_maxes,
-            dc_maxes,
-            dcplugs
+        pt_assignments = np.random.choice(
+            range(num_trains),
+            size=size,
+            replace=True,
+            p=np.array(probs)
         )
 
-        distance = np.array(df.values, dtype=np.float32)
+    vtypes = []
+    ice_effs = []
+    ice_gal_kwhs = []
+    ev_effs = []
+    ev_max_batts = []
+    ac_maxes = [] 
+    dc_maxes = []
+    dcplugs = []
 
+    for pt in pt_assignments:
+        pt: Powertrain
+            
+        vtypes.append(int(pt.ptype))
+        ice_effs.append(pt.ice_eff)
+        ice_gal_kwhs.append(pt.idle_fuel_consumption(1))
+        ev_effs.append(pt.ev_eff)
+        ev_max_batts.append(pt.batt_cap)
+        ac_maxes.append(pt.ac_power)
+        dc_maxes.append(pt.dc_power)
+        dcplugs.append(pt.dc_plug)
+        
+    fleet = make_fleet(
+        vtypes,
+        ice_effs,
+        ice_gal_kwhs,
+        ev_effs,
+        ev_max_batts,
+        ac_maxes,
+        dc_maxes,
+        dcplugs
+    )
+
+    distance = np.array(df.values, dtype=np.float32)
+    
     return distance, fleet
 
 @nb.njit(cache=True)
@@ -594,8 +596,8 @@ def simulation_loop(
 
     fuel_use = np.zeros(dshape, dtype=np.float32)
     battery_state = np.zeros(dshape, dtype=np.float32)
-    elec_demand = np.zeros((nrows, nevse) dtype=np.float32)
-    elec_energy = np.zeros((nrows, nevse) dtype=np.float32)
+    elec_demand = np.zeros((nrows, nevse), dtype=np.float32)
+    elec_energy = np.zeros((nrows, nevse), dtype=np.float32)
     occupancy = np.zeros(nrows, dtype=np.float32)
     utilization = np.zeros(nrows, dtype=np.float32)
     deferred = np.zeros(dshape, dtype=np.float32)
