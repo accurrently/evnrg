@@ -229,7 +229,8 @@ def fleet_from_df(df: pd.DataFrame, powertrains: list,
     dc_maxes = []
     dcplugs = []
 
-    for pt in pt_assignments:
+    for i in pt_assignments:
+        pt = powertrains[i]
         pt: Powertrain
             
         vtypes.append(int(pt.ptype))
