@@ -376,7 +376,7 @@ def disconnect_completed(idx, battery_state, fleet, bank, away_bank = False):
                     disconnect_evse(vid, fleet, bank, away_bank)
 
 @nb.njit
-def charge(idx, battery_state, vid, fleet, eid, bank):
+def charge(idx, battery_state, vid, fleet, eid, bank, min_per_interval):
     if nb.int64(eid) >= 0:
         power = bank[nb.int64(eid)]['power']
         potential = (min_per_interval / 60.0) * power
@@ -395,9 +395,9 @@ def charge_connected(idx, battery_state, fleet, home_bank, away_bank, min_per_in
         home_eid = fleet[i]['home_evse_id']
         away_eid = fleet[i]['away_evse_id']
         if home_eid >= 0:
-            charge(idx, battery_state, i, fleet, np.int64(home_eid), home_bank)
+            charge(idx, battery_state, i, fleet, np.int64(home_eid), home_bank, min_per_interval)
         elif away_eid >= 0:
-            charge(idx, battery_state, i, fleet, np.int64(away_eid), away_bank)
+            charge(idx, battery_state, i, fleet, np.int64(away_eid), away_bank, min_per_interval)
     return battery_state
 
 @nb.njit(cache=True)
