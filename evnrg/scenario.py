@@ -9,9 +9,7 @@ from .powertrain import Powertrain
 from .evse import EVSEType
 from .plug import DCPlug
 
-class QueueMode(enum.IntEnum):
-    DEFAULT = 0
-    SOC = 1
+
 
 class Scenario(NamedTuple):
     powertrains: List[Powertrain]
@@ -43,7 +41,6 @@ class Scenario(NamedTuple):
     home_banks: list = [
         {
             'probability': 1.,
-            'queue': QueueMode.DEFAULT,
             'evse': [
                 EVSEType(max_power=7., dc=False, min_=1, max_=0, pro_=.5)
             ]
