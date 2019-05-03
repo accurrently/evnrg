@@ -8,6 +8,7 @@ from typing import List
 import math
 import logging
 from timeit import default_timer as timer
+import pandas as pd
 
 from .scenario import Scenario
 from .dataset import DatasetInfo
