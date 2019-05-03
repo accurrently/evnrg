@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import enum
 
 from typing import NamedTuple, List
 import uuid
@@ -7,8 +8,10 @@ import uuid
 from .powertrain import Powertrain
 from .evse import EVSEType
 from .plug import DCPlug
-from .bank import QueueMode, Bank
 
+class QueueMode(enum.IntEnum):
+    DEFAULT = 0
+    SOC = 1
 
 class Scenario(NamedTuple):
     powertrains: List[Powertrain]
