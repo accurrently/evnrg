@@ -786,9 +786,9 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         evse_names = []
         for i in range(home_banks.shape[0]):
             if home_banks[i]['dc']:
-                evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['dc_max']))
+                evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
             else:
-                evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['ac_max']))
+                evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
 
         fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization = output
 
