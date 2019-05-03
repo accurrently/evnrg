@@ -318,7 +318,7 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
         else:
             avail = True
 
-        if avail and (random.random() <= bank[i]['probability']) and (soc < bank[i]['max_soc']:):
+        if avail and (random.random() <= bank[i]['probability']) and (soc < bank[i]['max_soc']):
             # DCFC
             if bank[i]['dc'] and (fleet[vid]['dc_max'] > 0):
                 can_connect = False
@@ -386,13 +386,12 @@ def disconnect_completed(idx, battery_state, fleet, home_bank, away_bank):
             if (away_eid >= 0) and (soc >= away_bank[away_eid]['max_soc']):
                 disconnect_evse(vid, fleet, away_bank, False)
     return fleet, home_bank, away_bank
-                
 
 @nb.njit
 def charge(current_batt, max_batt, power, max_soc, min_per_interval):
     potential = (min_per_interval / 60.0) * power
     max_nrg = max_batt * max_soc
-    return = min(current_batt+potential, max_nrg)
+    return min(current_batt+potential, max_nrg)
 
 
 @nb.njit(cache=True)
@@ -408,7 +407,7 @@ def charge_connected(battery_state, fleet, home_bank, away_bank, min_per_interva
             
             out[i] = charge(
                 current_batt,
-                fleet[i]['ev_max_batt']
+                fleet[i]['ev_max_batt'],
                 home_bank[home_eid]['power'],
                 home_bank[eid]['max_soc'],
                 min_per_interval
@@ -416,7 +415,7 @@ def charge_connected(battery_state, fleet, home_bank, away_bank, min_per_interva
         elif away_eid >= 0:
             out[i] = charge(
                 current_batt,
-                fleet[i]['ev_max_batt']
+                fleet[i]['ev_max_batt'],
                 away_bank[away_eid]['power'],
                 away_bank[eid]['max_soc'],
                 min_per_interval
@@ -710,7 +709,7 @@ def simulation_loop(
                     # About to depart
                     elif not (distance[idx + 1, vid] == 0.):
                         dist_a, defer_a = try_defer_trips(
-                            fleet[vid]
+                            fleet[vid],
                             distance[idx+1:, vid],
                             deferred[idx+1:, vid],
                             home_mask[idx+1:],
