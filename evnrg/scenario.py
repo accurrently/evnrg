@@ -5,7 +5,7 @@ from typing import NamedTuple, List
 import uuid
 
 from .powertrain import Powertrain
-from .evse import EVSEType, EVSE
+from .evse import EVSEType
 from .plug import DCPlug
 from .bank import QueueMode, Bank
 
@@ -69,28 +69,5 @@ class Scenario(NamedTuple):
         }
     ]
 
-    def make_bank(self, fleet_size, rows, away=False):
-        banks = []
-        banks_list = self.home_banks
-        if away:
-            banks_list = self.away_banks
-        for bank_info in banks_list:
-            evse_list = []
-            for e in bank_info.get('evse'):
-                e: EVSEType
-                n_evse = min(e.max_, max(e.min_, math.floor(e.pro_ * fleet_size)))
-                for i in range(n_evse):
-                    evse_list.append(EVSE(e))
-            bank = Bank(
-                max_power=bank_info.get('max_power', 0.),
-                capacity=bank_info.get('capacity', 0.),
-                evse=evse_list,
-                queue_probability=bank_info.get('probability', 1.),
-                queue_mode=bank_info.get('queue', QueueMode.DEFAULT),
-                demand_profile=np.zeros(rows, dtype=np.float32),
-                occupancy_profile=np.zeros(rows, dtype=np.uint8),
-                dynamic_size=away
-            )
-            banks.append(bank)
-        return home_banks
+    
 

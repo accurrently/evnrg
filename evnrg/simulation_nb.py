@@ -12,11 +12,9 @@ import pandas as pd
 
 from .scenario import Scenario
 from .datastorage import DatasetInfo, StorageInfo, DataHandler, UploadResult
-from .evse import EVSE, EVSEType
-from .bank import Bank
+from .evse import EVSEType
 from .powertrain import Powertrain, PType
 from .plug import DCPlug
-
 
 
 ICEV = 0
