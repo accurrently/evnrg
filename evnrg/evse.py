@@ -2,7 +2,7 @@
 import math
 from typing import NamedTuple
 
-from .vehicle import Vehicle
+# from .vehicle import Vehicle
 # from evnrg.simulation.eligibility import EligibilityRules
 
 __all__ = [

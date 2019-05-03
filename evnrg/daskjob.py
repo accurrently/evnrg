@@ -57,9 +57,6 @@ class DaskJobRunner(object):
         
         
         records = dask.compute(*results)
-        
-
-        
       
         return pd.DataFrame(records)
     
