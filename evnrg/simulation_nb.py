@@ -548,7 +548,7 @@ def try_defer_trips(
             
             # Move i to the next trip
             i = stop
-            while distance[i, vid] == 0.:
+            while distance[i] == 0.:
                 i += 1
         
         #return distance, deferred
