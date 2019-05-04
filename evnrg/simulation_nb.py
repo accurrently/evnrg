@@ -707,7 +707,7 @@ def simulation_loop(
                     
                     # About to depart
                     elif not (distance[idx + 1, vid] == 0.):
-                        dist_a, defer_a = try_defer_trips(
+                        try_defer_trips(
                             fleet[vid],
                             distance[idx+1:, vid],
                             deferred[idx+1:, vid],
@@ -719,8 +719,8 @@ def simulation_loop(
                             home_thresh_min,
                             soc_buffer
                         )
-                        distance[idx+1:, vid] = dist_a
-                        deferred[idx+1, vid] = defer_a
+                        #distance[idx+1:, vid] = dist_a
+                        #deferred[idx+1, vid] = defer_a
                     
         # Process queues and charge
         home_occupied = num_occupied_evse(fleet)
