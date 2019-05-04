@@ -706,21 +706,24 @@ def simulation_loop(
                             connect_evse(vid, soc, fleet, away_bank, True)
                     
                     # About to depart
-                    elif not (distance[idx + 1, vid] == 0.):
-                        try_defer_trips(
-                            fleet[vid],
-                            distance[idx+1:, vid],
-                            deferred[idx+1:, vid],
-                            home_mask[idx+1:],
-                            battery_state[idx - 1, vid],
-                            interval_min,
-                            idle_load_kw,
-                            away_thresh_min,
-                            home_thresh_min,
-                            soc_buffer
-                        )
-                        #distance[idx+1:, vid] = dist_a
-                        #deferred[idx+1, vid] = defer_a
+                    elif idx < nrows - 1:
+                        # ^^ Required check to make sure we don't overrun the array.
+                        # Remember that Numba will happily overrun without question.
+                        if not (distance[idx + 1, vid] == 0.):
+                            try_defer_trips(
+                                fleet[vid],
+                                distance[idx+1:, vid],
+                                deferred[idx+1:, vid],
+                                home_mask[idx+1:],
+                                battery_state[idx - 1, vid],
+                                interval_min,
+                                idle_load_kw,
+                                away_thresh_min,
+                                home_thresh_min,
+                                soc_buffer
+                            )
+                            #distance[idx+1:, vid] = dist_a
+                            #deferred[idx+1, vid] = defer_a
                     
         # Process queues and charge
         home_occupied = num_occupied_evse(fleet)
