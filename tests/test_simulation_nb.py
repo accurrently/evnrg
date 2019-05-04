@@ -273,7 +273,7 @@ class TestSimulation(unittest.TestCase):
             y = []
             x = 0
             while x >= 0 and not np.isnan(x):
-                x, queue = sim.pop_low_score(queue)
+                x = sim.pop_low_score(queue)
                 if x >= 0:
                     y.append(x)
             
@@ -334,17 +334,17 @@ class TestSimulation(unittest.TestCase):
 
     def test_evse_connections(self):
 
-        self.fleet, self.home_bank = sim.connect_evse(4, .5, self.fleet, self.home_bank)
+        sim.connect_evse(4, .5, self.fleet, self.home_bank)
         
         self.assertNotEqual(self.fleet[4]['home_evse_id'], -1)
         self.assertEqual(self.home_bank[0]['power'], 6)
 
-        self.fleet, self.home_bank = sim.disconnect_evse(4, self.fleet, self.home_bank)
+        sim.disconnect_evse(4, self.fleet, self.home_bank)
 
         self.assertEqual(self.fleet[4]['home_evse_id'], -1)
         self.assertEqual(self.home_bank[0]['power'], 0)
 
-        self.fleet, self.home_bank = sim.connect_evse(4, 1, self.fleet, self.home_bank)
+        sim.connect_evse(4, 1, self.fleet, self.home_bank)
 
         self.assertEqual(self.fleet[4]['home_evse_id'],-1)
         self.assertEqual(self.home_bank[0]['power'], 0)
@@ -354,8 +354,8 @@ class TestSimulation(unittest.TestCase):
     
     def test_disconnect_completed(self):
 
-        self.fleet, self.home_bank = sim.connect_evse(2, .5, self.fleet, self.home_bank)
-        self.fleet, self.home_bank = sim.connect_evse(3, .5, self.fleet, self.home_bank)
+        sim.connect_evse(2, .5, self.fleet, self.home_bank)
+        sim.connect_evse(3, .5, self.fleet, self.home_bank)
 
         self.assertGreaterEqual(self.fleet[3]['home_evse_id'], 0)
         self.assertGreaterEqual(self.fleet[2]['home_evse_id'], 0)
@@ -368,7 +368,7 @@ class TestSimulation(unittest.TestCase):
         b[:, 3] = [60, np.nan]
         b[:, 2] = [15, np.nan]
 
-        self.fleet, self.home_bank, self.away_bank = sim.disconnect_completed(b[0,:], self.fleet, self.home_bank, self.away_bank)
+        sim.disconnect_completed(b[0,:], self.fleet, self.home_bank, self.away_bank)
 
         self.assertEqual(self.fleet[3]['home_evse_id'], -1)
         self.assertGreaterEqual(self.fleet[2]['home_evse_id'], 0)
@@ -383,8 +383,8 @@ class TestSimulation(unittest.TestCase):
         b[:, 3] = [59.5, np.nan]
         
 
-        self.fleet, self.home_bank = sim.connect_evse(2, .5, self.fleet, self.home_bank)
-        self.fleet, self.home_bank = sim.connect_evse(3, .5, self.fleet, self.home_bank)
+        sim.connect_evse(2, .5, self.fleet, self.home_bank)
+        sim.connect_evse(3, .5, self.fleet, self.home_bank)
 
         self.assertGreaterEqual(self.fleet[2]['home_evse_id'], 0)
         self.assertGreaterEqual(self.fleet[3]['home_evse_id'], 0)
@@ -411,8 +411,8 @@ class TestSimulation(unittest.TestCase):
         b[:, 3] = [59.5, np.nan]
         
 
-        self.fleet, self.home_bank = sim.connect_evse(2, .5, self.fleet, self.home_bank)
-        self.fleet, self.home_bank = sim.connect_evse(3, .5, self.fleet, self.home_bank)
+        sim.connect_evse(2, .5, self.fleet, self.home_bank)
+        sim.connect_evse(3, .5, self.fleet, self.home_bank)
 
         
         self.assertGreaterEqual(self.fleet[2]['home_evse_id'], 0)

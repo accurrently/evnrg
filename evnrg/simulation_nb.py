@@ -286,7 +286,7 @@ def pop_low_score(queue):
                 idx = i
     if (not (np.isnan(idx))) and (idx >= 0):
         queue[nb.int64(idx)] = np.nan
-    return (idx, queue)
+    return idx
 
 @nb.njit(cache=True)
 def bank_dequeue(queue, idx):
@@ -349,7 +349,7 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
                 else:
                     fleet[vid]['home_evse_id'] = i
                 break
-    return fleet, bank
+    #return fleet, bank
 
 
 @nb.njit(cache=True)
@@ -366,7 +366,7 @@ def disconnect_evse(vid, fleet, bank, away_bank = False):
             fleet[vid]['away_evse_id'] = -1
         else:
             fleet[vid]['home_evse_id'] = -1          
-    return fleet, bank
+    #return fleet, bank
 
 @nb.njit(cache=True)
 def disconnect_completed(battery_state, fleet, home_bank, away_bank):
@@ -388,7 +388,7 @@ def disconnect_completed(battery_state, fleet, home_bank, away_bank):
 
         if (away_eid >= 0) and (soc >= away_bank[away_eid]['max_soc']):
             disconnect_evse(vid, fleet, away_bank, False)
-    return fleet, home_bank, away_bank
+    #return fleet, home_bank, away_bank
 
 @nb.njit
 def charge(current_batt, max_batt, power, max_soc, min_per_interval):
@@ -546,14 +546,14 @@ def try_defer_trips(
             while distance[i, vid] == 0.:
                 i += 1
         
-        return distance, deferred
+        #return distance, deferred
 
 
 @nb.njit(cache=True)
 def drive(distance, batt_state, fleet, idle_load_kw, min_per_interval):
 
-    batt_a = np.zeros(fleet.shape[0], dtype=np.float32)
-    fuel_a = np.zeros(fleet.shape[0], dtype=np.float32)
+    out = np.zeros((2,fleet.shape[0]), dtype=np.float32)
+
 
     for vid in range(fleet.shape[0]):
 
@@ -590,9 +590,9 @@ def drive(distance, batt_state, fleet, idle_load_kw, min_per_interval):
                 fuel_used = e * ice_g_kwh
         
 
-        batt_a[vid] = batt - batt_used    
-        fuel_a[vid] = fuel_used
-    return batt_a, fuel_a
+        out[0,vid] = batt - batt_used    
+        out[1,vid] = fuel_used
+    return out
 
 @nb.njit(cache=True)
 def num_occupied_evse(fleet):
@@ -676,12 +676,12 @@ def simulation_loop(
         for vid in range(nvehicles):
             if not (distance[idx, vid] == 0.):
                 quque = bank_dequeue(queue, vid)
-                fleet, home_bank = disconnect_evse(vid, fleet, home_bank, False)
-                fleet, away_bank = disconnect_evse(vid, fleet, away_bank, True)
+                disconnect_evse(vid, fleet, home_bank, False)
+                disconnect_evse(vid, fleet, away_bank, True)
         
         # Disconnect completed vehicles
         if idx > 0:
-            fleet, home_bank, away_bank = disconnect_completed(battery_state[idx-1,:], fleet, home_bank, away_bank)
+            disconnect_completed(battery_state[idx-1,:], fleet, home_bank, away_bank)
         
         # Do drive and stop stuff
         if idx > 0:
@@ -707,7 +707,7 @@ def simulation_loop(
                         
                         # Away stop
                         elif stop_time >= away_thresh_min:
-                            fleet, away_bank = connect_evse(vid, soc, fleet, away_bank, True)
+                            connect_evse(vid, soc, fleet, away_bank, True)
                     
                     # About to depart
                     elif not (distance[idx + 1, vid] == 0.):
@@ -732,14 +732,14 @@ def simulation_loop(
 
 
 
-            vid, queue = pop_low_score(queue)
+            vid = pop_low_score(queue)
 
-            if np.isnan(vid):
+            if vid < 0:
                 break
             
             soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
             
-            fleet, home_bank = connect_evse(vid, soc, fleet, home_bank, False )
+            connect_evse(vid, soc, fleet, home_bank, False )
 
             home_occupied += 1
         
@@ -762,10 +762,10 @@ def simulation_loop(
 
         
 
-        ba_drive, fu = drive(distance[idx,:], bs, fleet, idle_load_kw, interval_min)
+        drive_result = drive(distance[idx,:], bs, fleet, idle_load_kw, interval_min)
 
-        battery_state[idx,:] = ba_drive + ba_charge
-        fuel_use[idx,:] = fu
+        battery_state[idx,:] = drive_result[0,:] + ba_charge
+        fuel_use[idx,:] = drive_result[1,:]
     
     return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length)
 
