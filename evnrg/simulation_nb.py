@@ -555,7 +555,7 @@ def try_defer_trips(
 
 
 @nb.njit(cache=True)
-def drive(distance, batt_state, fleet, idle_load_kw, min_per_interval):
+def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_interval):
 
     out = np.zeros((2,fleet.shape[0]), dtype=np.float32)
 
@@ -595,9 +595,9 @@ def drive(distance, batt_state, fleet, idle_load_kw, min_per_interval):
                 fuel_used = e * ice_g_kwh
         
 
-        out[0,vid] = batt - batt_used    
-        out[1,vid] = fuel_used
-    return out
+        battery[vid] = batt - batt_used    
+        fuel[vid] = fuel_used
+    #return out
 
 @nb.njit(cache=True)
 def num_occupied_evse(fleet):
@@ -769,10 +769,9 @@ def simulation_loop(
 
         
 
-        drive_result = drive(distance[idx,:], bs, fleet, idle_load_kw, interval_min)
+        drive_result = drive(distance[idx,:], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
 
-        battery_state[idx,:] = drive_result[0,:] + ba_charge
-        fuel_use[idx,:] = drive_result[1,:]
+        battery_state[idx,:] += ba_charge
     
     return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length)
 
