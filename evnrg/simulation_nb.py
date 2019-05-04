@@ -691,7 +691,7 @@ def simulation_loop(
 
                     # New stop
                     if not ( prev_d == 0.):
-                        stop_time = stop_length_min(distance, idx, vid, interval_min)
+                        stop_time = stop_length_min(distance[idx:,vid], interval_min)
                         soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
                         
                         # Home stop
