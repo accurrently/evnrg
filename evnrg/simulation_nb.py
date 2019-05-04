@@ -620,7 +620,7 @@ def evse_usage(fleet, bank, min_per_interval):
         if eid >= 0:
             out[dem, eid] = bank[eid]['power']
             out[occ, eid] = 1
-            out[nrg, eid] = power * (min_per_interval / 60.)
+            out[nrg, eid] = bank[eid]['power'] * (min_per_interval / 60.)
     
     return out
     
