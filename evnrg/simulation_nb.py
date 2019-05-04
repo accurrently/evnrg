@@ -355,17 +355,18 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
 @nb.njit(cache=True)
 def disconnect_evse(vid, fleet, bank, away_bank = False):
     eid = -1
-    if away_bank:
-        eid = fleet[vid]['away_evse_id']
-    else:
-        eid = fleet[vid]['home_evse_id']
-    if eid >= 0:
-        if not away_bank:
-            bank[eid]['power'] = 0.
+    if bank.shape[0] > 0:
         if away_bank:
-            fleet[vid]['away_evse_id'] = -1
+            eid = fleet[vid]['away_evse_id']
         else:
-            fleet[vid]['home_evse_id'] = -1          
+            eid = fleet[vid]['home_evse_id']
+        if eid >= 0:
+            if not away_bank:
+                bank[eid]['power'] = 0.
+            if away_bank:
+                fleet[vid]['away_evse_id'] = -1
+            else:
+                fleet[vid]['home_evse_id'] = -1          
     #return fleet, bank
 
 @nb.njit(cache=True)
@@ -384,10 +385,12 @@ def disconnect_completed(battery_state, fleet, home_bank, away_bank):
         home_eid = fleet[vid]['home_evse_id']
 
         if (home_eid >= 0) and (soc >= home_bank[home_eid]['max_soc']):
-            disconnect_evse(vid, fleet, home_bank, False)
+            if home_eid < home_bank.shape[0]:
+                disconnect_evse(vid, fleet, home_bank, False)
 
         if (away_eid >= 0) and (soc >= away_bank[away_eid]['max_soc']):
-            disconnect_evse(vid, fleet, away_bank, False)
+            if away_eid < away_bank.shape[0]:
+                disconnect_evse(vid, fleet, away_bank, False)
     #return fleet, home_bank, away_bank
 
 @nb.njit
@@ -406,23 +409,25 @@ def charge_connected(battery_state, fleet, home_bank, away_bank, min_per_interva
         home_eid = fleet[i]['home_evse_id']
         away_eid = fleet[i]['away_evse_id']
         current_batt = battery_state[i]
-        if home_eid >= 0:
+        if home_eid >= 0 and home_bank.shape[0] > 0:
+            if home_eid < home_bank.shape[0]:
             
-            out[i] = charge(
-                current_batt,
-                fleet[i]['ev_max_batt'],
-                home_bank[home_eid]['power'],
-                home_bank[home_eid]['max_soc'],
-                min_per_interval
-            )
-        elif away_eid >= 0:
-            out[i] = charge(
-                current_batt,
-                fleet[i]['ev_max_batt'],
-                away_bank[away_eid]['power'],
-                away_bank[away_eid]['max_soc'],
-                min_per_interval
-            )
+                out[i] = charge(
+                    current_batt,
+                    fleet[i]['ev_max_batt'],
+                    home_bank[home_eid]['power'],
+                    home_bank[home_eid]['max_soc'],
+                    min_per_interval
+                )
+        elif away_eid >= 0 and away_bank.shape[0] > 0:
+            if away_eid < away_bank.shape[0]:
+                out[i] = charge(
+                    current_batt,
+                    fleet[i]['ev_max_batt'],
+                    away_bank[away_eid]['power'],
+                    away_bank[away_eid]['max_soc'],
+                    min_per_interval
+                )
     return out
 
 @nb.njit(cache=True)
@@ -663,9 +668,11 @@ def simulation_loop(
         # Disconnect and dequeue departing vehicles
         for vid in range(nvehicles):
             if not (distance[idx, vid] == 0.):
-                quque = bank_dequeue(queue, vid)
-                disconnect_evse(vid, fleet, home_bank, False)
-                disconnect_evse(vid, fleet, away_bank, True)
+                queue = bank_dequeue(queue, vid)
+                if home_bank.shape[0] > 0:
+                    disconnect_evse(vid, fleet, home_bank, False)
+                if away_bank.shape[0] > 0:
+                    disconnect_evse(vid, fleet, away_bank, True)
         
         # Disconnect completed vehicles
         if idx > 0:
@@ -689,8 +696,9 @@ def simulation_loop(
                         
                         # Home stop
                         if stop_time >= home_thresh_min or home_mask[idx]:
-                            
-                           queue = bank_enqueue(idx, vid, soc, fleet, queue, queue_soc)
+                            # Test to make sure we even have a home bank!
+                            if home_bank.shape[0] > 0:
+                                queue = bank_enqueue(idx, vid, soc, fleet, queue, queue_soc)
                             
                         
                         # Away stop
@@ -738,6 +746,7 @@ def simulation_loop(
             bs = battery_state[idx - 1, :]
         
         # Charge connected vehicles
+        
         ba_charge = charge_connected(bs, fleet, home_bank, away_bank, interval_min)
 
 
@@ -746,9 +755,13 @@ def simulation_loop(
         elec_demand[idx,:] = usage_info[0,:]
         elec_energy[idx,:] = usage_info[1,:]
         occupancy[idx] = usage_info[2,:].sum() 
+        
         util = 0
-        if home_bank[0]['bank_power_max'] > 0:
-            util = usage_info[0,:].sum() / home_bank[0]['bank_power_max']
+
+        if home_bank.shape[0] > 0:
+            if home_bank[0]['bank_power_max'] > 0:
+                util = usage_info[0,:].sum() / home_bank[0]['bank_power_max']
+        
         utilization[idx] = util
 
         
