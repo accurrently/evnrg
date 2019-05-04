@@ -609,32 +609,20 @@ def evse_usage(fleet, bank, min_per_interval):
 
     max_power = bank[0]['bank_power_max']
     num_evse = bank.shape[0]
-    total_power = 0.
-    total_occupied = 0.
 
-    dem = np.zeros(num_evse, dtype=np.float32)
-    nrg = np.zeros(num_evse, dtype=np.float32)
-    occ = 0
-    util = 0
+    out = np.zeros((3, num_evse), dtype=np.float32)
+    dem = 0 
+    nrg = 1 
+    occ = 2
     
     for vid in range(fleet.shape[0]):
         eid = fleet[vid]['home_evse_id']
         if eid >= 0:
-            power = bank[eid]['power']
-            total_power += power
-            total_occupied += 1
-            nrg[eid] = power * (min_per_interval / 60.)
-            demand[eid] = power
-    if num_evse > 0:
-        occ = total_occupied / num_evse
-    else:
-        occ = 0
-    if max_power > 0:
-        util = total_power / max_power
-    else:
-       util = 0
+            out[dem, eid] = bank[eid]['power']
+            out[occ, eid] = 1
+            out[nrg, eid] = power * (min_per_interval / 60.)
     
-    return dem, nrg, occ, util
+    return out
     
 
     
@@ -754,10 +742,13 @@ def simulation_loop(
 
 
         # Record usage
-        dem, nrg, occ, util = evse_usage(fleet, home_bank, interval_min)
-        elec_demand[idx,:] = dem
-        elec_energy[idx,:] = nrg
-        occupancy[idx] = occ
+        usage_info = evse_usage(fleet, home_bank, interval_min)
+        elec_demand[idx,:] = usage_info[0,:]
+        elec_energy[idx,:] = usage_info[1,:]
+        occupancy[idx] = usage_info[2,:].sum() 
+        util = 0
+        if home_bank[0]['bank_power_max'] > 0:
+            util = usage_info[0,:].sum() / home_bank[0]['bank_power_max']
         utilization[idx] = util
 
         
