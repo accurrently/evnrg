@@ -750,7 +750,8 @@ def simulation_loop(
         
         # Charge connected vehicles
         
-        ba_charge = charge_connected(bs, fleet, home_bank, away_bank, interval_min)
+        battery_state[idx,:] = charge_connected(bs, fleet, home_bank, away_bank, interval_min)
+        drive(distance[idx,:], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
 
 
         # Record usage
@@ -766,12 +767,6 @@ def simulation_loop(
                 util = usage_info[0,:].sum() / home_bank[0]['bank_power_max']
         
         utilization[idx] = util
-
-        
-
-        drive_result = drive(distance[idx,:], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
-
-        battery_state[idx,:] += ba_charge
     
     return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length)
 
