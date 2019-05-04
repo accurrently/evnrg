@@ -628,7 +628,7 @@ def evse_usage(fleet, bank, min_per_interval):
     
 
 
-@nb.njit(cache=True)
+#@nb.njit(cache=True)
 def simulation_loop(
     distance: np.array,
     fleet: np.array,
