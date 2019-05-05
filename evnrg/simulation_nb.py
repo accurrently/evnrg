@@ -482,19 +482,21 @@ def charge(current_batt, max_batt, power, max_soc, min_per_interval):
 
 
 @nb.njit(cache=True)
-def charge_connected(input_batt, output_batt, fleet, min_per_interval):
+def charge_connected(idx, battery_state, fleet, min_per_interval):
 
-    for i in range(fleet.shape[0]):
-        max_batt = fleet[i]['ev_max_batt']
-        power = fleet[i]['input_power']
-        max_soc = fleet[i]['input_max_soc']
-        soc = 0.
-        if max_batt >0:
-            soc = input_batt[i] / max_batt
-        if (max_batt > 0) and (soc < max_soc):
-            pot = (float(min_per_interval) / 60.0) * power
-            max_nrg = max_batt * max_soc
-            output_batt[i] = min(input_batt[i] + pot, max_nrg)
+    if idx > 0:
+
+        for i in range(fleet.shape[0]):
+            max_batt = fleet[i]['ev_max_batt']
+            power = fleet[i]['input_power']
+            max_soc = fleet[i]['input_max_soc']
+            soc = 0.
+            if max_batt > 0:
+                soc = battery_state[idx - 1, i] / max_batt
+            if (max_batt > 0) and (soc < max_soc):
+                max_nrg = max_batt * max_soc
+                new_nrg = battery_state[idx - 1, i] + (float(min_per_interval) / 60.0) * power
+                battery_state[idx, i] = min(new_nrg, max_nrg)
 
 
 @nb.njit(cache=True)
@@ -790,7 +792,7 @@ def simulation_loop(
 
         bs = fleet[:]['ev_max_batt']
         if idx > 0:
-            bs = battery_state[idx - 1]
+            bs = battery_state[idx - 1,:]
         
         # Process queue
         connect_from_queue(queue, fleet, bs, home_bank)
@@ -799,7 +801,7 @@ def simulation_loop(
         
         # Charge connected vehicles
         
-        charge_connected(bs, battery_state[idx,:], fleet, interval_min)
+        charge_connected(idx, battery_state, fleet, interval_min)
         drive(distance[idx], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
 
 
