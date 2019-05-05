@@ -452,34 +452,32 @@ def charge(current_batt, max_batt, power, max_soc, min_per_interval):
 
 
 @nb.njit(cache=True)
-def charge_connected(battery_state, fleet, home_bank, away_bank, min_per_interval):
-
-    out = np.zeros(fleet.shape[0], dtype=np.float32)
+def charge_connected(input_batt, output_batt, fleet, home_bank, away_bank, min_per_interval):
 
     for i in range(fleet.shape[0]):
+        may_charge = False
         home_eid = fleet[i]['home_evse_id']
         away_eid = fleet[i]['away_evse_id']
-        current_batt = battery_state[i]
+        max_batt = fleet[i]['ev_max_batt']
+        current_batt = input_batt[i]
+        power = 0.
+        max_soc = 1.
         if home_eid >= 0 and home_bank.shape[0] > 0:
             if home_eid < home_bank.shape[0]:
-            
-                out[i] = charge(
-                    current_batt,
-                    fleet[i]['ev_max_batt'],
-                    home_bank[home_eid]['power'],
-                    home_bank[home_eid]['max_soc'],
-                    min_per_interval
-                )
+                power = home_bank[home_eid]['power']
+                max_soc = home_bank[home_eid]['max_soc']
+                may_charge = True
         elif away_eid >= 0 and away_bank.shape[0] > 0:
             if away_eid < away_bank.shape[0]:
-                out[i] = charge(
-                    current_batt,
-                    fleet[i]['ev_max_batt'],
-                    away_bank[away_eid]['power'],
-                    away_bank[away_eid]['max_soc'],
-                    min_per_interval
-                )
-    return out
+                power = away_bank[away_eid]['power']
+                max_soc = away_bank[away_eid]['max_soc']
+                may_charge = True
+        
+        if may_charge:
+            pot = (min_per_interval / 60.0) * power
+            max_nrg = max_batt * max_soc
+            output_batt[i] = min(current_batt[i] + pot, max_nrg)
+
 
 @nb.njit(cache=True)
 def find_next_stop(distance, idx, vid):
@@ -788,8 +786,8 @@ def simulation_loop(
         
         # Charge connected vehicles
         
-        battery_state[idx,:] = charge_connected(bs, fleet, home_bank, away_bank, interval_min)
-        drive(distance[idx,:], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
+        charge_connected(bs, battery_state[idx], fleet, home_bank, away_bank, interval_min)
+        drive(distance[idx], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
 
 
         # Record usage
