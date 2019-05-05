@@ -47,14 +47,15 @@ class Powertrain(NamedTuple):
     """
     id: str = ''
     ice_eff: float = 32.
-    ev_eff: float = 0.
-    batt_cap: float = 0.
-    ac_power: float = 0.
-    dc_power: float = 0.
+    ev_eff: float = 0
+    batt_cap: float = 0
+    ac_power: float = 0
+    dc_power: float = 0
     dc_plug: int = DCPlug.NONE
     ptype: int = PType.ICEV
     fuel: Fuel = CARBOB_E10
     ice_alternator_eff: float = .21
+
 
     @property
     def pev(self) -> bool:
@@ -104,5 +105,12 @@ class Powertrain(NamedTuple):
                 return nrg_needed / self.fuel.kWh_gal
             else:
                 return nrg_needed / self.fuel.kWh_L
+        return 0
+    
+    @property
+    def ice_gal_kWh(self):
+        if self.fuel:
+            if (self.ice_alternator_eff > 0) and (self.fuel.kWh_gal > 0):
+                return (1/self.ice_alternator_eff) / self.fuel.kWh_gal
         return 0
 

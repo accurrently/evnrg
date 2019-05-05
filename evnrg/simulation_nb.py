@@ -258,7 +258,7 @@ def fleet_from_df(df: pd.DataFrame, powertrains: list,
             
         vtypes.append(int(pt.ptype))
         ice_effs.append(pt.ice_eff)
-        ice_gal_kwhs.append(pt.idle_fuel_consumption(1))
+        ice_gal_kwhs.append(pt.ice_gal_kWh)
         ev_effs.append(pt.ev_eff)
         ev_max_batts.append(pt.batt_cap)
         ac_maxes.append(pt.ac_power)
@@ -625,8 +625,6 @@ def try_defer_trips(
 @nb.njit(cache=True)
 def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_interval):
 
-    out = np.zeros((2,fleet.shape[0]), dtype=np.float32)
-
 
     for vid in range(fleet.shape[0]):
 
@@ -639,7 +637,7 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
         fuel_used = 0.
 
         # driving
-        if distance[vid] > 0:
+        if distance[vid] > 0.:
             d = distance[vid]
             
             # Handle EV
@@ -649,17 +647,17 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
                 d = d - (batt_used * ev_eff)
             
             # Handle ICE                
-            if  ice_eff > 0:
+            if  ice_eff > 0.:
                 fuel_used = d / ice_eff
         # idling
-        elif distance[vid] < 0:
+        elif distance[vid] < 0.:
             e = idle_load_kw * (min_per_interval / 60.)
-                # Handle EV
-            if ev_eff > 0:
+            # Handle EV
+            if ev_eff > 0.:
                 batt_used = min(batt, e)
                 e = e - batt_used
             # Handle ICE
-            if  ice_g_kwh > 0:
+            if  ice_g_kwh > 0.:
                 fuel_used = e * ice_g_kwh
         
         # Only set values if we actually drove        
@@ -722,8 +720,8 @@ def simulation_loop(
 
     fuel_use = np.zeros(dshape, dtype=np.float32)
     battery_state = np.zeros(dshape, dtype=np.float32)
-    elec_demand = np.zeros((nrows, nevse), dtype=np.float32)
-    elec_energy = np.zeros((nrows, nevse), dtype=np.float32)
+    elec_demand = np.zeros((nrows, min(1, nevse)), dtype=np.float32)
+    elec_energy = np.zeros((nrows, min(1, nevse)), dtype=np.float32)
     occupancy = np.zeros(nrows, dtype=np.float32)
     utilization = np.zeros(nrows, dtype=np.float32)
     deferred = np.zeros(dshape, dtype=np.float32)
@@ -808,18 +806,28 @@ def simulation_loop(
 
 
         # Record usage
-        usage_info = evse_usage(fleet, home_bank, interval_min)
-        elec_demand[idx,:] = usage_info[0,:]
-        elec_energy[idx,:] = usage_info[1,:]
-        occupancy[idx] = usage_info[2,:].sum() / float(nevse)
+        if nevse > 0:
+            usage_info = evse_usage(fleet, home_bank, interval_min)
+            elec_demand[idx,:] = usage_info[0,:]
+            elec_energy[idx,:] = usage_info[1,:]
+            
+            occupancy[idx] = float(usage_info[2,:].sum()) / float(nevse)
         
-        util = 0
+        
+        
+            util = 0
 
-        if home_bank.shape[0] > 0:
-            if home_bank[0]['bank_power_max'] > 0:
-                util = usage_info[0,:].sum() / home_bank[0]['bank_power_max']
-        
-        utilization[idx] = util
+            if home_bank.shape[0] > 0:
+                if home_bank[0]['bank_power_max'] > 0:
+                    util = usage_info[0,:].sum() / home_bank[0]['bank_power_max']
+            
+            utilization[idx] = util
+        else:
+            elec_demand[idx,:] = 0
+            elec_energy[idx,:] = 0
+            occupancy[idx] = 0
+            utilization[idx] = 0
+
     
     return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length, connected_home_evse)
 
@@ -914,6 +922,9 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
                 evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
             else:
                 evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
+        
+        if not evse_names:
+            evse_names = ['null_evse']
 
         fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length, connected_home_evse = output
 
