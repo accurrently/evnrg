@@ -163,7 +163,9 @@ vehicle_ = np.dtype([
     ('dc_max', np.float32, 1),
     ('dc_plug', np.int32, 1),
     ('home_evse_id', np.int64, 1),
-    ('away_evse_id', np.int64, 1)
+    ('away_evse_id', np.int64, 1),
+    ('input_power', np.float32, 1),
+    ('input_max_soc', np.float32, 1)
 ])
 
 nb_vehicle_ = nb.from_dtype(vehicle_)
@@ -192,6 +194,8 @@ def make_fleet(
     a[:]['dc_plug'] = dcplugs
     a[:]['home_evse_id'] = -1
     a[:]['away_evse_id'] = -1
+    a[:]['input_power'] = 0.
+    a[:]['imput_max_soc'] = 0.
     
     return a
 
@@ -327,9 +331,7 @@ def get_soc(vid, fleet, battery_nrg):
 
 
 @nb.njit(cache=True)
-def connect_evse(vid, soc, fleet, bank, away_bank = False):
-
-    connected_power = 0.
+def get_connect_evse_id(vid, soc, fleet, bank, away_bank = False):
 
     connected = -1
 
@@ -350,28 +352,33 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
                     can_connect = True
                 
                 if can_connect:
-                    connected_power = min(fleet[vid]['dc_max'], bank[i]['power_max'])
-                    bank[i]['power'] = connected_power
-                    if away_bank:
-                        fleet[vid]['away_evse_id'] = i
-                        connected = i
-                    else:
-                        fleet[vid]['home_evse_id'] = i
-                        connected = i
-
+                    connected = i
                     break
             # AC
             else:
-                connected_power = min(fleet[vid]['ac_max'], bank[i]['power_max'])
-                bank[i]['power'] = connected_power
-                if away_bank:
-                    fleet[vid]['away_evse_id'] = i
-                    connected = i
-                else:
-                    fleet[vid]['home_evse_id'] = i
-                    connected = i
+                connected = i
                 break
     return connected
+
+@nb.njit(cache=True)
+def connect_direct(vid, fleet, input_batt, bank, away_bank = False):
+    soc = 1.
+    if fleet[vid]['ev_max_batt'] > 0:
+        soc = input_batt[vid] / fleet[vid]['ev_max_batt']
+
+    eid = get_connect_evse_id(vid, soc, fleet, bank, away_bank)
+
+    if eid >= 0:
+        if bank[eid]['dc']:
+            fleet[vid]['input_power'] = min(fleet[vid]['dc_max'], bank[eid]['power_max'])
+        else:
+            fleet[vid]['input_power'] = min(fleet[vid]['ac_max'], bank[eid]['power_max'])
+        fleet[vid]['input_max_soc'] = bank['max_soc']
+        if away_bank:
+            fleet[vid]['away_evse_id'] = eid
+        else:
+            fleet[vid]['home_evse_id'] = eid
+            bank[eid]['power'] = fleet[vid]['input_power']
 
 @nb.njit(cache=True)
 def connect_from_queue(queue, fleet, battery_state, bank):
@@ -400,7 +407,17 @@ def connect_from_queue(queue, fleet, battery_state, bank):
         if pop_vid >= 0:
             if fleet[pop_vid]['ev_max_batt'] > 0:
                 soc = battery_state[pop_vid] / fleet[pop_vid]['ev_max_batt']
-                if connect_evse(pop_vid, soc, fleet, bank, False) >= 0:
+                eid = get_connect_evse_id(pop_vid, soc, fleet, bank, False)
+                if eid >= 0:
+                    soc = 1.
+                    if bank[eid]['dc']:
+                        fleet[pop_vid]['input_power'] = min(fleet[pop_vid]['dc_max'], bank[eid]['power_max'])
+                    else:
+                        fleet[pop_vid]['input_power'] = min(fleet[pop_vid]['ac_max'], bank[eid]['power_max'])
+                    fleet[pop_vid]['home_evse_id'] = eid
+                    bank[eid]['power'] = fleet[pop_vid]['input_power']
+                    fleet[pop_vid]['input_soc_max'] = bank[eid]['soc_max']
+
                     queue[pop_vid] = np.nan
                     num_connected += 1
                 else:
@@ -418,12 +435,14 @@ def disconnect_departing(distance, fleet, home_bank):
             home_eid = fleet[vid]['home_evse_id']  
             away_eid = fleet[vid]['away_evse_id']  
             if home_eid >= 0:
-                fleet[vid]['home_evse_id'] = -1
                 if home_eid <= home_bank.shape[0]:
-                    home_bank[home_eid]['power'] = 0.
-            if away_eid >= 0:
+                    home_bank[home_eid]['power'] = 0.                
+            
+            if (home_eid >= 0) or (away_eid >= 0):
+                fleet[vid]['home_evse_id'] = -1
                 fleet[vid]['away_evse_id'] = -1
-
+                fleet[vid]['input_power'] = 0.
+                fleet[vid]['input_soc_max'] = 0
     #return fleet, bank
 
 @nb.njit(cache=True)
@@ -445,9 +464,13 @@ def disconnect_completed(battery_state, fleet, home_bank, away_bank):
             if home_eid < home_bank.shape[0]:
                 home_bank[home_eid]['power'] = 0.
                 fleet[vid]['home_evse_id'] = -1
+                fleet[vid]['input_power'] = 0.
+                fleet[vid]['input_soc_max'] = 0
         if (away_eid >= 0) and (soc >= away_bank[away_eid]['max_soc']):
             if away_eid < away_bank.shape[0]:
                 fleet[vid]['away_evse_id'] = -1
+                fleet[vid]['input_power'] = 0.
+                fleet[vid]['input_soc_max'] = 0
 
     #return fleet, home_bank, away_bank
 
@@ -459,29 +482,17 @@ def charge(current_batt, max_batt, power, max_soc, min_per_interval):
 
 
 @nb.njit(cache=True)
-def charge_connected(input_batt, output_batt, fleet, home_bank, away_bank, min_per_interval):
+def charge_connected(input_batt, output_batt, fleet, min_per_interval):
 
     for i in range(fleet.shape[0]):
-        may_charge = False
-        home_eid = fleet[i]['home_evse_id']
-        away_eid = fleet[i]['away_evse_id']
         max_batt = fleet[i]['ev_max_batt']
-        current_batt = input_batt[i]
-        power = 0.
-        max_soc = 1.
-        if home_eid >= 0 and home_bank.shape[0] > 0:
-            if home_eid < home_bank.shape[0]:
-                power = home_bank[home_eid]['power']
-                max_soc = home_bank[home_eid]['max_soc']
-                may_charge = True
-        elif away_eid >= 0 and away_bank.shape[0] > 0:
-            if away_eid < away_bank.shape[0]:
-                power = away_bank[away_eid]['power']
-                max_soc = away_bank[away_eid]['max_soc']
-                may_charge = True
-        
-        if may_charge:
-            pot = (min_per_interval / 60.0) * power
+        power = fleet[i]['input_power']
+        max_soc = fleet[i]['input_max_soc']
+        soc = 0.
+        if max_batt >0:
+            soc = input_batt[i] / max_batt
+        if (max_batt > 0) and (soc < max_soc):
+            pot = (float(min_per_interval) / 60.0) * power
             max_nrg = max_batt * max_soc
             output_batt[i] = min(input_batt[i] + pot, max_nrg)
 
@@ -755,7 +766,7 @@ def simulation_loop(
                         
                         # Away stop
                         elif stop_time >= away_thresh_min:
-                            connect_evse(vid, soc, fleet, away_bank, True)
+                            connect_direct(vid, soc, fleet, away_bank, True)
                     
                     # About to depart
                     elif idx < nrows - 1:
@@ -788,7 +799,7 @@ def simulation_loop(
         
         # Charge connected vehicles
         
-        charge_connected(bs, battery_state[idx], fleet, home_bank, away_bank, interval_min)
+        charge_connected(bs, battery_state[idx], fleet, interval_min)
         drive(distance[idx], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
 
 
@@ -871,6 +882,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         home_banks = make_evse_banks(sc.home_banks, fleet_size)
 
         away_banks = make_evse_banks(sc.away_banks, fleet_size)
+        away_banks[:]['power'] = away_banks[:]['power_max']
 
         num_banks = home_banks.shape[0]
 
