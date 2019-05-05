@@ -766,7 +766,7 @@ def simulation_loop(
                         
                         # Away stop
                         elif stop_time >= away_thresh_min:
-                            connect_direct(vid, soc, fleet, away_bank, True)
+                            connect_direct(vid, fleet, distance[idx-1], away_bank, away_bank = True)
                     
                     # About to depart
                     elif idx < nrows - 1:
