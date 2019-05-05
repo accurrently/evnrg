@@ -258,7 +258,7 @@ def fleet_from_df(df: pd.DataFrame, powertrains: list,
             
         vtypes.append(int(pt.ptype))
         ice_effs.append(pt.ice_eff)
-        ice_gal_kwhs.append(pt.ice_gal_kWh)
+        ice_gal_kwhs.append(round(pt.ice_gal_kWh, 3))
         ev_effs.append(pt.ev_eff)
         ev_max_batts.append(pt.batt_cap)
         ac_maxes.append(pt.ac_power)
