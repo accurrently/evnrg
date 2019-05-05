@@ -484,11 +484,14 @@ def charge(current_batt, max_batt, power, max_soc, min_per_interval):
 @nb.njit(cache=True)
 def charge_connected(idx, battery_state, fleet, min_per_interval):
 
-    if idx > 0:
-        for i in range(fleet.shape[0]):
-            max_nrg = fleet[i]['ev_max_batt'] * fleet[i]['input_max_soc']
-            new_nrg = battery_state[idx - 1, i] + ((float(min_per_interval) / 60.0) * fleet[i]['input_power'])
-            battery_state[idx, i] = min(new_nrg, max_nrg)
+    
+    for i in range(fleet.shape[0]):
+        prev_batt = fleet[i]['ev_max_batt']
+        if idx > 0:
+            prev_batt = battery_state[idx - 1, i]
+        max_nrg = fleet[i]['ev_max_batt'] * fleet[i]['input_max_soc']
+        new_nrg = prev_batt + ((float(min_per_interval) / 60.0) * fleet[i]['input_power'])
+        battery_state[idx, i] = min(new_nrg, max_nrg)
 
 
 @nb.njit(cache=True)
@@ -656,9 +659,8 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
                 fuel_used = e * ice_g_kwh
         
         # Only set values if we actually drove        
-        if not (distance[vid] == 0.):
-            battery[vid] = batt - batt_used    
-            fuel[vid] = fuel_used
+        battery[vid] = batt - batt_used    
+        fuel[vid] = fuel_used
     #return out
 
 @nb.njit(cache=True)
@@ -786,16 +788,18 @@ def simulation_loop(
         bs = fleet[:]['ev_max_batt']
         if idx > 0:
             bs = battery_state[idx - 1,:]
+
+        # Drive
+        drive(distance[idx], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
         
         # Process queue
         connect_from_queue(queue, fleet, bs, home_bank)
         queue_length[idx] = queue_size(queue)
         connected_home_evse[idx] = fleet[:]['home_evse_id']
-        
-        # Charge connected vehicles
-        
+
+        # Charge connected vehicles  
         charge_connected(idx, battery_state, fleet, interval_min)
-        drive(distance[idx], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
+        
 
 
         # Record usage
