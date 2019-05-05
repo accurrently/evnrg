@@ -363,71 +363,73 @@ def get_connect_evse_id(vid, soc, fleet, bank, away_bank = False):
 @nb.njit(cache=True)
 def connect_direct(vid, fleet, input_batt, bank, away_bank = False):
     # Only connect PEVs.
-    if fleed[vid]['ev_eff'] > 0:
-        soc = 1.
-        if (fleet[vid]['ev_max_batt'] > 0.):
-            soc = input_batt[vid] / fleet[vid]['ev_max_batt']
+    if bank.shape[0] > 0:
+        if fleed[vid]['ev_eff'] > 0:
+            soc = 1.
+            if (fleet[vid]['ev_max_batt'] > 0.):
+                soc = input_batt[vid] / fleet[vid]['ev_max_batt']
 
-        eid = get_connect_evse_id(vid, soc, fleet, bank, away_bank)
+            eid = get_connect_evse_id(vid, soc, fleet, bank, away_bank)
 
-        if eid >= 0:
-            if bank[eid]['dc']:
-                fleet[vid]['input_power'] = min(fleet[vid]['dc_max'], bank[eid]['power_max'])
-            else:
-                fleet[vid]['input_power'] = min(fleet[vid]['ac_max'], bank[eid]['power_max'])
-            fleet[vid]['input_max_soc'] = bank[eid]['max_soc']
-            if away_bank:
-                fleet[vid]['away_evse_id'] = eid
-            else:
-                fleet[vid]['home_evse_id'] = eid
-                bank[eid]['power'] = fleet[vid]['input_power']
+            if eid >= 0:
+                if bank[eid]['dc']:
+                    fleet[vid]['input_power'] = min(fleet[vid]['dc_max'], bank[eid]['power_max'])
+                else:
+                    fleet[vid]['input_power'] = min(fleet[vid]['ac_max'], bank[eid]['power_max'])
+                fleet[vid]['input_max_soc'] = bank[eid]['max_soc']
+                if away_bank:
+                    fleet[vid]['away_evse_id'] = eid
+                else:
+                    fleet[vid]['home_evse_id'] = eid
+                    bank[eid]['power'] = fleet[vid]['input_power']
 
 @nb.njit(cache=True)
 def connect_from_queue(queue, fleet, battery_state, bank):
-    num_connected = 0
-    for vid in range(fleet.shape[0]):
-        if fleet[vid]['home_evse_id'] >= 0:
-            num_connected += 1
-    
-
-    failed = np.full(fleet.shape[0], -1, dtype=np.int64)
-    n_failed = 0
-    in_queue = 1
-    while (num_connected < bank.shape[0]) and (in_queue > 0):
-        low_score  = 100000
-        pop_vid = -1
-        in_queue = 0
-        for i in range(queue.shape[0]):
-            if not np.isnan(queue[i]):
-                in_queue += 1
-                if isin_(i, failed):
-                    in_queue -= 1
-                elif queue[i] < low_score:
-                    pop_vid = i
-                    low_score = queue[i]
+    if bank.shape[0] > 0:
+        num_connected = 0
+        for vid in range(fleet.shape[0]):
+            if fleet[vid]['home_evse_id'] >= 0:
+                num_connected += 1
         
-        if pop_vid >= 0:
-            if (fleet[pop_vid]['ev_max_batt'] > 0.):
-                soc = battery_state[pop_vid] / fleet[pop_vid]['ev_max_batt']
-                eid = get_connect_evse_id(pop_vid, soc, fleet, bank, False)
-                if eid >= 0:
-                    soc = 1.
-                    if bank[eid]['dc']:
-                        fleet[pop_vid]['input_power'] = min(fleet[pop_vid]['dc_max'], bank[eid]['power_max'])
-                    else:
-                        fleet[pop_vid]['input_power'] = min(fleet[pop_vid]['ac_max'], bank[eid]['power_max'])
-                    fleet[pop_vid]['home_evse_id'] = eid
-                    bank[eid]['power'] = fleet[pop_vid]['input_power']
-                    fleet[pop_vid]['input_max_soc'] = bank[eid]['max_soc']
 
-                    queue[pop_vid] = np.nan
-                    num_connected += 1
+        failed = np.full(fleet.shape[0], -1, dtype=np.int64)
+        n_failed = 0
+        in_queue = 1
+        while (num_connected < bank.shape[0]) and (in_queue > 0):
+            low_score  = 100000
+            pop_vid = -1
+            in_queue = 0
+            for i in range(queue.shape[0]):
+                if not np.isnan(queue[i]):
+                    in_queue += 1
+                    if isin_(i, failed):
+                        in_queue -= 1
+                    elif queue[i] < low_score:
+                        pop_vid = i
+                        low_score = queue[i]
+            
+            if pop_vid >= 0:
+                if (fleet[pop_vid]['ev_max_batt'] > 0.):
+                    soc = battery_state[pop_vid] / fleet[pop_vid]['ev_max_batt']
+                    eid = get_connect_evse_id(pop_vid, soc, fleet, bank, False)
+                    if eid >= 0:
+                        soc = 1.
+                        if bank[eid]['dc']:
+                            fleet[pop_vid]['input_power'] = min(fleet[pop_vid]['dc_max'], bank[eid]['power_max'])
+                        else:
+                            fleet[pop_vid]['input_power'] = min(fleet[pop_vid]['ac_max'], bank[eid]['power_max'])
+                        fleet[pop_vid]['home_evse_id'] = eid
+                        bank[eid]['power'] = fleet[pop_vid]['input_power']
+                        fleet[pop_vid]['input_max_soc'] = bank[eid]['max_soc']
+
+                        queue[pop_vid] = np.nan
+                        num_connected += 1
+                    else:
+                        failed[n_failed] = pop_vid
+                        n_failed += 1
                 else:
                     failed[n_failed] = pop_vid
                     n_failed += 1
-            else:
-                failed[n_failed] = pop_vid
-                n_failed += 1
 
 
 @nb.njit(cache=True)
@@ -720,8 +722,12 @@ def simulation_loop(
 
     fuel_use = np.zeros(dshape, dtype=np.float32)
     battery_state = np.zeros(dshape, dtype=np.float32)
-    elec_demand = np.zeros((nrows, min(1, nevse)), dtype=np.float32)
-    elec_energy = np.zeros((nrows, min(1, nevse)), dtype=np.float32)
+
+    elec_demand = np.zeros(nrows, dtype=np.float32)
+    elec_energy = np.zeros(nrows, dtype=np.float32)
+    if nevse > 0:
+        elec_demand = np.zeros((nrows,nevse), dtype=np.float32)
+        elec_energy = np.zeros((nrows, nevse), dtype=np.float32)
     occupancy = np.zeros(nrows, dtype=np.float32)
     utilization = np.zeros(nrows, dtype=np.float32)
     deferred = np.zeros(dshape, dtype=np.float32)
