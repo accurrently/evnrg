@@ -646,7 +646,7 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
             if ev_eff > 0:
                 nrg_req = d / ev_eff
                 batt_used = min(batt, nrg_req)
-                d = d - (batt_used * ev_eff)
+                d = d - max((batt_used * ev_eff), d)
             
             # Handle ICE                
             if  ice_eff > 0.:
@@ -657,7 +657,7 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
             # Handle EV
             if ev_eff > 0.:
                 batt_used = min(batt, e)
-                e = e - batt_used
+                e = e - max(e, batt_used)
             # Handle ICE
             if  ice_g_kwh > 0.:
                 fuel_used = e * ice_g_kwh
