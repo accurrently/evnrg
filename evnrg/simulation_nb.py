@@ -373,7 +373,7 @@ def connect_direct(vid, fleet, input_batt, bank, away_bank = False):
             fleet[vid]['input_power'] = min(fleet[vid]['dc_max'], bank[eid]['power_max'])
         else:
             fleet[vid]['input_power'] = min(fleet[vid]['ac_max'], bank[eid]['power_max'])
-        fleet[vid]['input_max_soc'] = bank['max_soc']
+        fleet[vid]['input_max_soc'] = bank[eid]['max_soc']
         if away_bank:
             fleet[vid]['away_evse_id'] = eid
         else:
