@@ -107,6 +107,20 @@ def make_evse_banks(evse_banks: list, fleet_size: int):
 
     return a
 
+
+@nb.njit(cache=True)
+def isin_(x, arr):
+    """
+    This function only exists because Numba (stupidly?) doesn't support 
+    the 'in' keyword or np.isin().
+    """
+    exists = False
+    for i in range(arr.shape[0]):
+        if arr[i] == x:
+            exists = True
+            break
+    return exists
+
 @nb.njit(cache=True)
 def throttle_bank(bank: np.array, max_factor: float = .9):
     bank_total = bank[:, EVSE_POWER].sum()
@@ -307,18 +321,14 @@ def get_soc(vid, fleet, battery_nrg):
 @nb.njit(cache=True)
 def connect_evse(vid, soc, fleet, bank, away_bank = False):
 
-    evse_ids = range(bank.shape[0])
     connected_power = 0.
 
-    for i in evse_ids:
+    connected = -1
+
+    for i in range(bank.shape[0]):
         avail = True
         if not away_bank:
-            for j in range(fleet.shape[0]):
-                if i == fleet[j]['home_evse_id']:
-                    home_avail = False
-                    break
-        else:
-            avail = True
+            avail = not (isin_(i, fleet[:]['home_evse_id']))
 
         if avail and (random.random() <= bank[i]['probability']) and (soc < bank[i]['max_soc']):
             # DCFC
@@ -336,8 +346,10 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
                     bank[i]['power'] = connected_power
                     if away_bank:
                         fleet[vid]['away_evse_id'] = i
+                        connected = i
                     else:
                         fleet[vid]['home_evse_id'] = i
+                        connected = i
 
                     break
             # AC
@@ -346,10 +358,49 @@ def connect_evse(vid, soc, fleet, bank, away_bank = False):
                 bank[i]['power'] = connected_power
                 if away_bank:
                     fleet[vid]['away_evse_id'] = i
+                    connected = i
                 else:
                     fleet[vid]['home_evse_id'] = i
+                    connected = i
                 break
-    #return fleet, bank
+    return connected
+
+@nb.njit(cache=True)
+def connect_from_queue(queue, fleet, battery_state, bank):
+    num_connected = 0
+    for vid in range(fleet.shape[0]):
+        if fleet[vid]['home_evse_id'] >= 0:
+            num_connected += 1
+    
+
+    failed = np.full(fleet.shape[0], -1, dtype=np.int64)
+    n_failed = 0
+    in_queue = 1
+    while (num_connected < bank.shape[0]) and (in_queue > 0):
+        low_score  = 100000
+        pop_vid = -1
+        in_queue = 0
+        for i in range(queue.shape[0]):
+            if not np.isnan(queue[i]):
+                in_queue += 1
+                if isin_(i, failed):
+                    in_queue -= 1
+                elif queue[i] < low_score:
+                    pop_vid = i
+                    low_score = queue[i]
+        
+        if pop_vid >= 0:
+            if fleet[pop_vid]['ev_max_batt'] > 0:
+                soc = battery_state[pop_vid] / fleet[pop_vid]['ev_max_batt']
+                if connect_evse(pop_vid, soc, fleet, bank, False) >= 0:
+                    queue[pop_vid] = np.nan
+                    num_connected += 1
+                else:
+                    failed[n_failed] = pop_vid
+                    n_failed += 1
+            else:
+                failed[n_failed] = pop_vid
+                n_failed += 1
 
 
 @nb.njit(cache=True)
@@ -724,29 +775,14 @@ def simulation_loop(
                             )
                             #distance[idx+1:, vid] = dist_a
                             #deferred[idx+1, vid] = defer_a
-                    
-        # Process queues and charge
-        home_occupied = num_occupied_evse(fleet)
-        while home_occupied < nevse:
-
-
-
-            vid = pop_low_score(queue)
-
-            if vid < 0:
-                break
-            
-            soc = get_soc(vid, fleet, battery_state[idx - 1, vid])
-            
-            connect_evse(vid, soc, fleet, home_bank, False )
-
-            home_occupied += 1
-        
-        queue_length[idx] = queue_size(queue)
 
         bs = fleet[:]['ev_max_batt']
         if idx > 0:
             bs = battery_state[idx - 1, :]
+        
+        # Process queue
+        connect_from_queue(queue, fleet, bs, home_bank)
+        queue_length[idx] = queue_size(queue)
         
         # Charge connected vehicles
         
