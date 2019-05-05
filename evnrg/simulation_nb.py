@@ -476,7 +476,7 @@ def charge_connected(input_batt, output_batt, fleet, home_bank, away_bank, min_p
         if may_charge:
             pot = (min_per_interval / 60.0) * power
             max_nrg = max_batt * max_soc
-            output_batt[i] = min(current_batt[i] + pot, max_nrg)
+            output_batt[i] = min(input_batt[i] + pot, max_nrg)
 
 
 @nb.njit(cache=True)
