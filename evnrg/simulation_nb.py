@@ -790,16 +790,16 @@ def simulation_loop(
 
         bs = fleet[:]['ev_max_batt']
         if idx > 0:
-            bs = battery_state[idx - 1, :]
+            bs = battery_state[idx - 1]
         
         # Process queue
         connect_from_queue(queue, fleet, bs, home_bank)
         queue_length[idx] = queue_size(queue)
-        connected_home_evse[idx, :] = fleet[:]['home_evse_id']
+        connected_home_evse[idx] = fleet[:]['home_evse_id']
         
         # Charge connected vehicles
         
-        charge_connected(bs, battery_state[idx], fleet, interval_min)
+        charge_connected(bs, battery_state[idx,:], fleet, interval_min)
         drive(distance[idx], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
 
 
