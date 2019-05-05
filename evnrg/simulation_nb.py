@@ -711,6 +711,7 @@ def simulation_loop(
     utilization = np.zeros(nrows, dtype=np.float32)
     deferred = np.zeros(dshape, dtype=np.float32)
     queue_length = np.zeros(nrows, dtype=np.int64)
+    connected_home_evse = np.full((nrows, nvehicles), -1, dtype=np.int64)
 
     queue = np.full(nvehicles, np.nan, dtype=np.float32)
 
@@ -783,6 +784,7 @@ def simulation_loop(
         # Process queue
         connect_from_queue(queue, fleet, bs, home_bank)
         queue_length[idx] = queue_size(queue)
+        connected_home_evse[idx, :] = fleet[:]['home_evse_id']
         
         # Charge connected vehicles
         
@@ -804,7 +806,7 @@ def simulation_loop(
         
         utilization[idx] = util
     
-    return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length)
+    return (fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length, connected_home_evse)
 
 @nb.njit
 def installed_capacity(bank):
@@ -897,7 +899,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             else:
                 evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
 
-        fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length = output
+        fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length, connected_home_evse = output
 
         vehicle_ids = df.columns.values.tolist()
         dfcols = df.columns
@@ -913,11 +915,12 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         )
         deferred_df = pd.DataFrame(deferred, columns=dfcols, index=df_index)
         battery_df = pd.DataFrame(battery_state, columns=dfcols, index=df_index)
+        home_evse_df = pd.DataFrame(connected_home_evse, columns=dfcols, index=df_index)
         
         obj_base = 'results/' + 'simulations/' + sc.run_id + '/'
 
-        dfs = [fuel_df, demand_df, battery_df, occupancy_df, deferred_df, energy_df]
-        lbls = ['fuel', 'demand', 'battery', 'occupancy', 'deferred', 'energy']
+        dfs = [fuel_df, demand_df, battery_df, occupancy_df, deferred_df, energy_df, home_evse_df]
+        lbls = ['fuel', 'demand', 'battery', 'occupancy', 'deferred', 'energy', 'connected_evse']
 
 
         n_ac, n_dc, pow_cap = installed_capacity(home_banks)
