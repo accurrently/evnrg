@@ -416,7 +416,7 @@ def connect_from_queue(queue, fleet, battery_state, bank):
                         fleet[pop_vid]['input_power'] = min(fleet[pop_vid]['ac_max'], bank[eid]['power_max'])
                     fleet[pop_vid]['home_evse_id'] = eid
                     bank[eid]['power'] = fleet[pop_vid]['input_power']
-                    fleet[pop_vid]['input_max_soc'] = bank[eid]['soc_max']
+                    fleet[pop_vid]['input_max_soc'] = bank[eid]['max_soc']
 
                     queue[pop_vid] = np.nan
                     num_connected += 1
