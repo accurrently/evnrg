@@ -773,7 +773,7 @@ def simulation_loop(
                     elif idx < nrows - 1:
                         # ^^ Required check to make sure we don't overrun the array.
                         # Remember that Numba will happily overrun without question.
-                        if (not (distance[idx + 1, vid] == 0.) and (fleet[vid]['ice_eff'] <= 0.):
+                        if (not (distance[idx + 1, vid] == 0.)) and (fleet[vid]['ice_eff'] <= 0.):
                             # ^^ Double-check that this is only for BEVs
                             try_defer_trips(
                                 fleet[vid],
