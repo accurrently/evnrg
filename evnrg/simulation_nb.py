@@ -442,7 +442,7 @@ def disconnect_departing(distance, fleet, home_bank):
                 fleet[vid]['home_evse_id'] = -1
                 fleet[vid]['away_evse_id'] = -1
                 fleet[vid]['input_power'] = 0.
-                fleet[vid]['input_soc_max'] = 0
+                fleet[vid]['input_soc_max'] = 0.
     #return fleet, bank
 
 @nb.njit(cache=True)
@@ -465,12 +465,12 @@ def disconnect_completed(battery_state, fleet, home_bank, away_bank):
                 home_bank[home_eid]['power'] = 0.
                 fleet[vid]['home_evse_id'] = -1
                 fleet[vid]['input_power'] = 0.
-                fleet[vid]['input_soc_max'] = 0
+                fleet[vid]['input_soc_max'] = 0.
         if (away_eid >= 0) and (soc >= away_bank[away_eid]['max_soc']):
             if away_eid < away_bank.shape[0]:
                 fleet[vid]['away_evse_id'] = -1
                 fleet[vid]['input_power'] = 0.
-                fleet[vid]['input_soc_max'] = 0
+                fleet[vid]['input_soc_max'] = 0.
 
     #return fleet, home_bank, away_bank
 
