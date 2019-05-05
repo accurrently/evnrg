@@ -310,6 +310,14 @@ def bank_dequeue(queue, idx):
     return queue
 
 @nb.njit(cache=True)
+def dequeue_departing(distance, queue, fleet):
+    for vid in range(fleet.shape[0]):
+        if not (distance[vid] == 0):
+            queue[vid] = np.nan
+    
+
+
+@nb.njit(cache=True)
 def get_soc(vid, fleet, battery_nrg):
     out = 0.
     if fleet[vid]['ev_max_batt'] > 0:
@@ -404,20 +412,18 @@ def connect_from_queue(queue, fleet, battery_state, bank):
 
 
 @nb.njit(cache=True)
-def disconnect_evse(vid, fleet, bank, away_bank = False):
-    eid = -1
-    if bank.shape[0] > 0:
-        if away_bank:
-            eid = fleet[vid]['away_evse_id']
-        else:
-            eid = fleet[vid]['home_evse_id']
-        if eid >= 0:
-            if not away_bank:
-                bank[eid]['power'] = 0.
-            if away_bank:
+def disconnect_departing(distance, fleet, home_bank):
+    for vid in range(fleet.shape[0]):
+        if not (distance[vid] == 0):
+            home_eid = fleet[vid]['home_evse_id']  
+            away_eid = fleet[vid]['away_evse_id']  
+            if home_eid >= 0:
+                fleet[vid]['home_evse_id'] = -1
+                if home_eid <= home_bank.shape[0]:
+                    home_bank[home_eid]['power'] = 0.
+            if away_eid >= 0:
                 fleet[vid]['away_evse_id'] = -1
-            else:
-                fleet[vid]['home_evse_id'] = -1          
+
     #return fleet, bank
 
 @nb.njit(cache=True)
@@ -437,11 +443,12 @@ def disconnect_completed(battery_state, fleet, home_bank, away_bank):
 
         if (home_eid >= 0) and (soc >= home_bank[home_eid]['max_soc']):
             if home_eid < home_bank.shape[0]:
-                disconnect_evse(vid, fleet, home_bank, False)
-
+                home_bank[home_eid]['power'] = 0.
+                fleet[vid]['home_evse_id'] = -1
         if (away_eid >= 0) and (soc >= away_bank[away_eid]['max_soc']):
             if away_eid < away_bank.shape[0]:
-                disconnect_evse(vid, fleet, away_bank, False)
+                fleet[vid]['away_evse_id'] = -1
+
     #return fleet, home_bank, away_bank
 
 @nb.njit
@@ -716,17 +723,12 @@ def simulation_loop(
     for idx in range(nrows):
 
         # Disconnect and dequeue departing vehicles
-        for vid in range(nvehicles):
-            if not (distance[idx, vid] == 0.):
-                queue = bank_dequeue(queue, vid)
-                if home_bank.shape[0] > 0:
-                    disconnect_evse(vid, fleet, home_bank, False)
-                if away_bank.shape[0] > 0:
-                    disconnect_evse(vid, fleet, away_bank, True)
+        dequeue_departing(distance[idx], queue, fleet)
+        disconnect_departing(distance[idx], fleet, home_bank)
         
         # Disconnect completed vehicles
         if idx > 0:
-            disconnect_completed(battery_state[idx-1,:], fleet, home_bank, away_bank)
+            disconnect_completed(battery_state[idx-1], fleet, home_bank, away_bank)
         
         # Do drive and stop stuff
         if idx > 0:
