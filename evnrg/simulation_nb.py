@@ -324,7 +324,7 @@ def dequeue_departing(distance, queue, fleet):
 @nb.njit(cache=True)
 def get_soc(vid, fleet, battery_nrg):
     out = 0.
-    if fleet[vid]['ev_max_batt'] > 0:
+    if (fleet[vid]['ev_max_batt'] > 0.):
         out = battery_nrg / fleet[vid]['ev_max_batt']
     return out
 
@@ -363,7 +363,7 @@ def get_connect_evse_id(vid, soc, fleet, bank, away_bank = False):
 @nb.njit(cache=True)
 def connect_direct(vid, fleet, input_batt, bank, away_bank = False):
     soc = 1.
-    if fleet[vid]['ev_max_batt'] > 0:
+    if (fleet[vid]['ev_max_batt'] > 0.):
         soc = input_batt[vid] / fleet[vid]['ev_max_batt']
 
     eid = get_connect_evse_id(vid, soc, fleet, bank, away_bank)
@@ -405,7 +405,7 @@ def connect_from_queue(queue, fleet, battery_state, bank):
                     low_score = queue[i]
         
         if pop_vid >= 0:
-            if fleet[pop_vid]['ev_max_batt'] > 0:
+            if (fleet[pop_vid]['ev_max_batt'] > 0.):
                 soc = battery_state[pop_vid] / fleet[pop_vid]['ev_max_batt']
                 eid = get_connect_evse_id(pop_vid, soc, fleet, bank, False)
                 if eid >= 0:
