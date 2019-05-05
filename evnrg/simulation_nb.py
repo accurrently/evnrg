@@ -195,7 +195,7 @@ def make_fleet(
     a[:]['home_evse_id'] = -1
     a[:]['away_evse_id'] = -1
     a[:]['input_power'] = 0.
-    a[:]['imput_max_soc'] = 0.
+    a[:]['input_max_soc'] = 0.
     
     return a
 
