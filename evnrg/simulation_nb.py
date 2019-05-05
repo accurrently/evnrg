@@ -283,7 +283,7 @@ def fleet_from_df(df: pd.DataFrame, powertrains: list,
 @nb.njit(cache=True)
 def bank_enqueue(idx, vid, soc, fleet, queue, queue_soc):
 
-    if fleet[vid]['type'] in (PHEV, BEV):
+    if fleet[vid]['ev_eff'] > 0:
         if soc < 1:
             if queue_soc:
                 queue[vid] = soc
@@ -362,23 +362,25 @@ def get_connect_evse_id(vid, soc, fleet, bank, away_bank = False):
 
 @nb.njit(cache=True)
 def connect_direct(vid, fleet, input_batt, bank, away_bank = False):
-    soc = 1.
-    if (fleet[vid]['ev_max_batt'] > 0.):
-        soc = input_batt[vid] / fleet[vid]['ev_max_batt']
+    # Only connect PEVs.
+    if fleed[vid]['ev_eff'] > 0:
+        soc = 1.
+        if (fleet[vid]['ev_max_batt'] > 0.):
+            soc = input_batt[vid] / fleet[vid]['ev_max_batt']
 
-    eid = get_connect_evse_id(vid, soc, fleet, bank, away_bank)
+        eid = get_connect_evse_id(vid, soc, fleet, bank, away_bank)
 
-    if eid >= 0:
-        if bank[eid]['dc']:
-            fleet[vid]['input_power'] = min(fleet[vid]['dc_max'], bank[eid]['power_max'])
-        else:
-            fleet[vid]['input_power'] = min(fleet[vid]['ac_max'], bank[eid]['power_max'])
-        fleet[vid]['input_max_soc'] = bank[eid]['max_soc']
-        if away_bank:
-            fleet[vid]['away_evse_id'] = eid
-        else:
-            fleet[vid]['home_evse_id'] = eid
-            bank[eid]['power'] = fleet[vid]['input_power']
+        if eid >= 0:
+            if bank[eid]['dc']:
+                fleet[vid]['input_power'] = min(fleet[vid]['dc_max'], bank[eid]['power_max'])
+            else:
+                fleet[vid]['input_power'] = min(fleet[vid]['ac_max'], bank[eid]['power_max'])
+            fleet[vid]['input_max_soc'] = bank[eid]['max_soc']
+            if away_bank:
+                fleet[vid]['away_evse_id'] = eid
+            else:
+                fleet[vid]['home_evse_id'] = eid
+                bank[eid]['power'] = fleet[vid]['input_power']
 
 @nb.njit(cache=True)
 def connect_from_queue(queue, fleet, battery_state, bank):
@@ -748,8 +750,8 @@ def simulation_loop(
                 curr_d = distance[idx, vid]
                 prev_d = distance[idx -1, vid]
 
-                # Stop stuff
-                if curr_d == 0.:
+                # Stop stufffor PEVs
+                if (curr_d == 0.) and (fleet[vid]['ev_eff'] > 0):
 
                     # New stop
                     if not ( prev_d == 0.):
@@ -759,7 +761,7 @@ def simulation_loop(
                         # Home stop
                         if stop_time >= home_thresh_min or home_mask[idx]:
                             # Test to make sure we even have a home bank!
-                            if home_bank.shape[0] > 0:
+                            if (home_bank.shape[0] > 0) :
                                 queue = bank_enqueue(idx, vid, soc, fleet, queue, queue_soc)
                             
                         
@@ -771,7 +773,8 @@ def simulation_loop(
                     elif idx < nrows - 1:
                         # ^^ Required check to make sure we don't overrun the array.
                         # Remember that Numba will happily overrun without question.
-                        if not (distance[idx + 1, vid] == 0.):
+                        if (not (distance[idx + 1, vid] == 0.) and (fleet[vid]['ice_eff'] <= 0.):
+                            # ^^ Double-check that this is only for BEVs
                             try_defer_trips(
                                 fleet[vid],
                                 distance[idx+1:, vid],
