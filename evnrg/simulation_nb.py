@@ -808,7 +808,7 @@ def simulation_loop(
         usage_info = evse_usage(fleet, home_bank, interval_min)
         elec_demand[idx,:] = usage_info[0,:]
         elec_energy[idx,:] = usage_info[1,:]
-        occupancy[idx] = usage_info[2,:].sum() 
+        occupancy[idx] = usage_info[2,:].sum() / float(nevse)
         
         util = 0
 
