@@ -823,8 +823,8 @@ def simulation_loop(
             
             utilization[idx] = util
         else:
-            elec_demand[idx,:] = 0
-            elec_energy[idx,:] = 0
+            elec_demand[idx] = 0
+            elec_energy[idx] = 0
             occupancy[idx] = 0
             utilization[idx] = 0
 
@@ -917,13 +917,13 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         timer_end = timer()
 
         evse_names = []
-        for i in range(home_banks.shape[0]):
-            if home_banks[i]['dc']:
-                evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
-            else:
-                evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
-        
-        if not evse_names:
+        if home_banks.shape[0] > 0:
+            for i in range(home_banks.shape[0]):
+                if home_banks[i]['dc']:
+                    evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
+                else:
+                    evse_names.append('ac{}-{}kW'.format(i, home_banks[i]['power_max']))
+        else:
             evse_names = ['null_evse']
 
         fuel_use, battery_state, deferred, elec_demand, elec_energy, occupancy, utilization, queue_length, connected_home_evse = output
