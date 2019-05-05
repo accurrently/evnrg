@@ -486,12 +486,14 @@ def charge_connected(idx, battery_state, fleet, min_per_interval):
 
     
     for i in range(fleet.shape[0]):
-        prev_batt = fleet[i]['ev_max_batt']
-        if idx > 0:
-            prev_batt = battery_state[idx - 1, i]
-        max_nrg = fleet[i]['ev_max_batt'] * fleet[i]['input_max_soc']
-        new_nrg = prev_batt + ((float(min_per_interval) / 60.0) * fleet[i]['input_power'])
-        battery_state[idx, i] = min(new_nrg, max_nrg)
+        # Only charge connected
+        if (fleet[i]['input_power'] > 0):
+            prev_batt = fleet[i]['ev_max_batt']
+            if idx > 0:
+                prev_batt = battery_state[idx - 1, i]
+            max_nrg = fleet[i]['ev_max_batt'] * fleet[i]['input_max_soc']
+            new_nrg = prev_batt + ((float(min_per_interval) / 60.0) * fleet[i]['input_power'])
+            battery_state[idx, i] = min(new_nrg, max_nrg)
 
 
 @nb.njit(cache=True)
