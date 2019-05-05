@@ -655,9 +655,10 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
             if  ice_g_kwh > 0:
                 fuel_used = e * ice_g_kwh
         
-
-        battery[vid] = batt - batt_used    
-        fuel[vid] = fuel_used
+        # Only set values if we actually drove        
+        if not (distance[vid] == 0.):
+            battery[vid] = batt - batt_used    
+            fuel[vid] = fuel_used
     #return out
 
 @nb.njit(cache=True)
