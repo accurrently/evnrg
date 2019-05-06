@@ -14,6 +14,8 @@ from .scenario import Scenario
 from .dataset import DatasetInfo
 from .datastorage import StorageInfo
 
+from .simulation_nb import run_simulation as nb_run_simulation
+
 class DaskJobRunner(object):
 
     __slots__ = (
