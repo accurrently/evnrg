@@ -969,7 +969,10 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             'execution_time_sec': timer_end-timer_begin,
             'fleet_size': fleet_size,
             'rows': rows,
-            'interval_length_min': interval_len
+            'interval_length_min': interval_len,
+            'total_elec': elec_energy.sum(),
+            'total_fuel': fuel_use.sum(),
+            'total_deferred': deferred.sum()
         }
 
         upload_uid = ''
