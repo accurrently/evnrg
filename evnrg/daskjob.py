@@ -13,16 +13,13 @@ import pandas as pd
 from .scenario import Scenario
 from .dataset import DatasetInfo
 from .datastorage import StorageInfo
-#from .job_results import JobResults
-#from .simulation import run_simulation, SimulationResult
-from .simulation_nb import run_simulation as nb_run_simulation
-
 
 class DaskJobRunner(object):
 
     __slots__ = (
         'scheduler_address',
-        'client'
+        'client',
+        'jobs'
     )
 
     def __init__(self, scheduler_address = ''):
@@ -33,18 +30,44 @@ class DaskJobRunner(object):
             self.scheduler_address = 'localhost:8786'
         else:
             self.client = Client(self.scheduler_address)
+        
+        self.jobs = {}
     
-    def run_simulations(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
+    def add_job(self, name, jobf, args, kwargs):
+
+
+        logging.info('Adding job: {}'.format(jobf))
+        client = self.client
+
+        self.jobs[name] = {
+            'function': jobf.__name__,
+            'future': jobf(*args, **kwargs),
+            'result': None
+        }
+    
+    def visualize_job(self, name):
+        if self.jobs.get(name):
+            dask.visualize(self.jobs['name']['future'])
+
+    def run_jobs(self):
+        client = self.client
+        out = []
+        for k, v in self.jobs.items():
+            future = v['future']
+            result = dask.compute(* future)
+            self.jobs[k]['results'] = result
+            out.append(result)
+        return out
+
+    
+    def run_simulation(self, scenarios: List[Scenario], datasets: List[DatasetInfo], 
                         storage_info: StorageInfo, use_numba = True):
 
         client = self.client
 
-        logging.info('Running Scenarios...')
-
         #sim_f = run_simulation
 
         #if use_numba:
-        print('Running simulations using Numba...')
         sim_f = nb_run_simulation
 
 
@@ -55,10 +78,5 @@ class DaskJobRunner(object):
                                    
                 sim_result = dask.delayed(sim_f)(dataset, scenario, storage_info)
                 results.append(sim_result)
-        
-        
-        records = dask.compute(*results)
       
         return pd.DataFrame(records)
-    
-    
