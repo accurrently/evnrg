@@ -80,5 +80,5 @@ class DaskJobRunner(object):
                                    
                 sim_result = dask.delayed(sim_f)(dataset, scenario, storage_info)
                 results.append(sim_result)
-      
+        records = dask.compute(*results)
         return pd.DataFrame(records)
