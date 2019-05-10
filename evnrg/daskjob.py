@@ -193,9 +193,10 @@ class DaskJobRunner(object):
 
                 away_banks = dask.delayed(make_evse_banks)(
                     sc.away_banks,
-                    fleet_size
+                    fleet_size,
+                    True
                 )
-                away_banks[:]['power'] = away_banks[:]['power_max']
+                
 
                 mask = dask.delayed(make_mask)(sc, trips)
 

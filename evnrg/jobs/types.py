@@ -21,7 +21,7 @@ evse_ = np.dtype([
 
 nb_evse_ = nb.from_dtype(evse_)
 
-def make_evse_banks(evse_banks: list, fleet_size: int):
+def make_evse_banks(evse_banks: list, fleet_size: int, away=False):
 
     n_evse = 0
 
@@ -76,6 +76,9 @@ def make_evse_banks(evse_banks: list, fleet_size: int):
     a[:]['plug_chademo'] = plug_chademo
     a[:]['plug_combo'] = plug_combo
     a[:]['plug_tesla'] = plug_tesla
+
+    if away:
+        a[:]['power'] = a[:]['power_max']
 
     return a
 
