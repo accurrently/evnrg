@@ -183,17 +183,16 @@ class DaskJobRunner(object):
                 )
                 
 
-                for out_df, out_name in zip(sim_result, sim_outputs):
-                    outputs.extend(
-                        dask.delayed(write_data)(
-                            out_df,
-                            ds,
-                            si,
-                            name=ds.dataset_id + '-' + out_name,
-                            basepath=bpath,
-                            meta = meta
-                        )
+                
+                outputs.extend(
+                    dask.delayed(write_data_iter)(
+                        sim_result,
+                        sim_outputs,
+                        si,
+                        basepath=bpath,
+                        meta = meta
                     )
+                )
 
 
                 fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df = sim_result

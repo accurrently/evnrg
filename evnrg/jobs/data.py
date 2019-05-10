@@ -54,6 +54,23 @@ def write_data(
     
     return results
 
+def write_data_iter(dfs: list, names: list, ds: DatasetInfo,
+    si: StorageInfo, basepath: str, formats: str ='records, json, csv', 
+    meta: dict={}):
+    outputs = []
+    for out_df, out_name in zip(sim_result, names):
+        outputs.extend(
+            write_data(
+                out_df,
+                ds,
+                si,
+                name=ds.dataset_id + '-' + out_name,
+                basepath=basepath,
+                meta = meta
+            )
+        )
+    return outputs
+
     
 
 def banks_from_df(df: pd.DataFrame, sc: Scenario):
