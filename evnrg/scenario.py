@@ -18,6 +18,7 @@ class Scenario(NamedTuple):
     home_threshold_min: float = 300.0 # Default to 5 hours
     away_threshold_min: float = 120.0 # default to 2 hours
     soc_deferment_buffer: float = .2 # default to 20% SoC buffer
+    interval_min: float = 5
     idle_load_kw: float =  0.
     home_mask_rules: list = [
         # An example of a time-based mask
