@@ -26,6 +26,7 @@ from .jobs.types import (
 from .jobs.data import (
     load_data,
     write_data,
+    write_data_iter,
     fleet_from_df,
     banks_from_df,
     make_mask
