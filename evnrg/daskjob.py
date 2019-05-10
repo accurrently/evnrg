@@ -163,7 +163,7 @@ class DaskJobRunner(object):
 
 
             for ds in datasets:
-                dataset: DatasetInfo
+                ds: DatasetInfo
                
                 
                 fid = ds.dataset_id                
@@ -176,7 +176,7 @@ class DaskJobRunner(object):
 
                 
 
-                trips = dask.delayed(load_data)(dataset, storage_info)
+                trips = dask.delayed(load_data)(ds, storage_info)
 
                 fleet = dask.delayed(fleet_from_df)(
                     trips,
@@ -220,7 +220,7 @@ class DaskJobRunner(object):
                             out_df,
                             ds,
                             si,
-                            name=dataset.dataset_id + '-' + out_name,
+                            name=ds.dataset_id + '-' + out_name,
                             basepath=bpath,
                             meta = meta
                         )
@@ -363,7 +363,7 @@ class DaskJobRunner(object):
                 ds,
                 si,
                 basepath=bbpath,
-                name=dataset.dataset_id + '-' + 'summary',
+                name='overall-summary',
                 formats='csv'
             )
         )
@@ -412,7 +412,7 @@ class DaskJobRunner(object):
                 summary_df,
                 ds,
                 si,
-                name=dataset.dataset_id + '-' + 'summary',
+                name='electrical-demand',
                 basepath=bbpath,
                 formats='csv'
             )
