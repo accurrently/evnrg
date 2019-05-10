@@ -182,21 +182,70 @@ class DaskJobRunner(object):
                     sc,
                     si
                 )
+
+                fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df = sim_result
                 
 
                 
                 outputs.extend(
-                    dask.delayed(write_data_iter)(
-                        sim_result,
-                        sim_outputs,
+                    dask.delayed(write_data)(
+                        fuel_df,
+                        'fuel',
                         si,
                         basepath=bpath,
-                        meta = meta
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        batt_df,
+                        'battery',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        defer_df,
+                        'deferred',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        demand_df,
+                        'demand',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        nrg_df,
+                        'energy',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        evse_df,
+                        'evse_info',
+                        si,
+                        basepath=bpath,
+                        meta=meta
                     )
                 )
 
 
-                fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df = sim_result
+
+
+                
 
                 nrg_nfo_df = dask.delayed(energy_info)(
                     fid,
