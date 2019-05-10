@@ -707,7 +707,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
             sc.soc_deferment_buffer
         )
     except Exception as e:
-        raise e:
+        raise e
     finally:
         st.cleanup()
     return out
