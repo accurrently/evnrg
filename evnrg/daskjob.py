@@ -190,7 +190,7 @@ class DaskJobRunner(object):
                 outputs.extend(
                     dask.delayed(write_data_iter)(
                         sim_result,
-                        sim_outputs
+                        sim_outputs,
                         si,
                         basepath=bpath,
                         meta=meta
