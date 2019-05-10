@@ -130,7 +130,7 @@ class DaskJobRunner(object):
         outputs = []
         
         rid = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        si = dask.delayed(storage_info)
+        si = storage_info
 
         sim_outputs = [
             'fuel',
@@ -146,7 +146,7 @@ class DaskJobRunner(object):
         summarized_data = []
         bbpath = 'results/' + rid + '/scenarios/'
 
-        for scenario in scenarios:
+        for sc in scenarios:
             scenario: Scenario
 
             scenario_long = []
@@ -155,16 +155,16 @@ class DaskJobRunner(object):
             scenario_short = []
             scenario_short = dask.delayed(scenario_short)
 
-            sc = dask.delayed(scenario)
+            #sc = dask.delayed(scenario)
             idle_load = sc.idle_load_kw
             sid = sc.run_id
 
             bpath = bbpath + scenario.run_id
 
 
-            for dataset in datasets:
+            for ds in datasets:
                 dataset: DatasetInfo
-                ds = dask.delayed(dataset)
+               
                 
                 fid = ds.dataset_id                
 
