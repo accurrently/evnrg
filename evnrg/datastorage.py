@@ -87,6 +87,12 @@ class StorageInfo(NamedTuple):
     cache_dir: str = TMP_DIR
     create_bucket: bool = True
 
+    def gen_temp_path(self, ext: str = None):
+        if ext:
+            return os.path.join(self.cache_dir, uuid.uuid4().hex) + '.' + ext
+        return os.path.join(self.cache_dir, uuid.uuid4().hex)
+        
+
 
 class UploadResult(NamedTuple):
     """Contains data about the uploaded object.
@@ -182,131 +188,142 @@ class DataHandler(object):
         for fn in self.temp:
             if os.path.isfile(fn):
                 os.remove(fn)
-
-    def upload_data(self, df: pd.DataFrame, obj_path: str, 
-                    formats: str = 'parquet',
-                    keep_temp: bool = False, enable_cleanup: bool = True):
+    
+    @classmethod
+    def write_parquet(cls, df: pd.DataFrame, cache_dir: str):
 
         uid = uuid.uuid4().hex
+        p = os.path.join(cache_dir, uid) + '.csv'
+
+        df.to_parquet(
+            p,
+            engine='fastparquet',
+            compression='gzip'
+        )
+
+        return p
+    
+    @classmethod
+    def write_csv(cls, df: pd.DataFrame, cache_dir: str):
+
+        uid = uuid.uuid4().hex
+        p = os.path.join(cache_dir, uid) + '.csv'
+
+        df.to_csv(
+            p,
+            date_format='%Y-%m-%dT%H:%M:%S'
+        )
+
+        return p
+    
+    @classmethod
+    def write_records(cls, df: pd.DataFrame, cache_dir: str):
+
+        uid = uuid.uuid4().hex
+        p = os.path.join(cache_dir, uid) + '.records.json'
+
+        df.to_json(
+            p,
+            orient='records',
+            date_format='iso',
+            date_unit='s'
+        )
+
+        return p
+    
+    @classmethod
+    def write_json(cls, df: pd.DataFrame, cache_dir: str):
+
+        uid = uuid.uuid4().hex
+        p = os.path.join(cache_dir, uid) + '.records.json'
+
+        df.to_json(
+            p,
+            orient='split',
+            date_format='iso',
+            date_unit='s'
+        )
+
+        return p
+    
+    def upload_file(self, 
+                    local_path: str, 
+                    remote_path: str, 
+                    file_type: str,
+                    remove_on_success: bool = True, 
+                    use_cleanup: bool = True,
+                    tries: int = 3,
+                    meta: dict = {}):
+        
+        if not os.path.isfile(local_path):
+            raise FileNotFoundError(
+                'Not found: {}'.format(local_path)
+            )
+        
+        out = {
+            'remote_path': remote_path,
+            'file_type': file_type,
+            'uploaded': False
+        }
+
+        out = out.update(meta)
+
+        o = None
+        for i in range(tries):
+            o = self.driver.upload_object(
+                local_path,
+                self.container,
+                remote_path
+            )
+            if o:
+                if remove_local:
+                    os.remove(local_path)
+
+                out['uploaded'] = True
+
+        if use_cleanup:
+            self.temp.append(local_path)
+        
+        return out
+
+
+    def upload_data(self, df: pd.DataFrame, obj_path: str, 
+                    formats: str = 'parquet', uid: str = None,
+                    remove_on_success: bool = True,
+                    use_cleanup: bool = True,
+                    meta: dict = {}):
+
+        if not uid:
+            uid = uuid.uuid4().hex
 
         fmts = re.findall(r'[\w]+', formats)
 
-        local_path = os.path.join(self.cache_dir, uid)
-        remote_base = obj_path.rstrip('/') + '/'
+        remote_base = obj_path.rstrip('/') + '/' + uid
 
         results = []
-        written = []
+        
+        for fmt in fmts:
+            w = {
+                'parquet': (DataHandler.write_parquet, 'parquet'),
+                'csv': (DataHandler.write_csv, 'csv'),
+                'records': (DataHandler.write_records, 'records.json'),
+                'json': (DataHandler.write_json, 'json')
+            }.get(fmt)
 
-        if 'parquet' in fmts:
-            local_parq = local_path + '.parquet'
-            remote_parq = remote_base + 'parquet/' + uid + '.parquet'
-            df.columns = df.columns.astype(str)
-            df.to_parquet(
-                local_parq,
-                engine='fastparquet',
-                compression='gzip'
-            )
-            written.append(local_parq)
-            o = self.driver.upload_object(
-                        local_parq,
-                        self.container,
-                        remote_parq
-                    )
-            if o:
-                results.append(
-                    UploadResult(
-                        uid=uid,
-                        filetype='parquet',
-                        cache_path=local_parq,
-                        remote_path=remote_parq,
-                        obj=o
-                    )
-                )
-        if 'json' in fmts:
-            local_json = local_path + '.json'
-            remote_json = remote_base + 'json/' + uid + '.json'
-            df.to_json(
-                local_json,
-                orient='split',
-                date_format='iso',
-                date_unit='s'
-            )
-            written.append(local_json)
-            o = self.driver.upload_object(
-                        local_json,
-                        self.container,
-                        remote_json
-                    )
-            if o:
-                results.append(
-                    UploadResult(
-                        uid=uid,
-                        filetype='json',
-                        cache_path=local_json,
-                        remote_path=remote_json,
-                        obj=o
-                    )
-                )
-        if 'records' in fmts:
-            local_records = local_path + '.records.json'
-            remote_records = remote_base + 'records/' + uid + '.records.json'
-            df.to_json(
-                local_records,
-                orient='records',
-                date_format='iso',
-                date_unit='s'
-            )
-            written.append(local_records)
-            o = self.driver.upload_object(
-                        local_records,
-                        self.container,
-                        remote_records
-                    )
-            if o:
-                results.append(
-                    UploadResult(
-                        uid=uid,
-                        filetype='records',
-                        cache_path=local_records,
-                        remote_path=remote_records,
-                        obj=o
-                    )
-                )
-        if 'csv' in fmts:
-            local_csv = local_path + '.csv'
-            remote_csv = remote_base + 'csv/' + uid + '.csv'
-            df.to_csv(
-                local_csv,
-                date_format='%Y-%m-%dT%H:%M:%S'
-            )
-            written.append(local_csv)
-            o = self.driver.upload_object(
-                        local_csv,
-                        self.container,
-                        remote_csv
-                    )
-            if o:
-                results.append(
-                    UploadResult(
-                        uid=uid,
-                        filetype='csv',
-                        cache_path=local_csv,
-                        remote_path=remote_csv,
-                        obj=o
-                    )
-                )
+            if w:
+                wf, ext = w
+                if isinstance(wf, callable) and isinstance(ext, str):
+                    p = wf(df, self.cache_dir)
 
-        # Delete temporary files
-        if not keep_temp:
-            for to_remove in written:
-                if os.path.isfile(to_remove):
-                    os.remove(to_remove)
-
-        # Add to file list for cleanup
-        if enable_cleanup:
-            for to_remove in written:
-                if os.path.isfile(to_remove):
-                    self.temp.append(to_remove)
+                    res = self.upload_file(
+                        local_path=p,
+                        remote_path=remote_base + '.' + ext,
+                        file_type=ext,
+                        remove_on_success=remove_on_success,
+                        use_cleanup=use_cleanup,
+                        meta=meta
+                    )
+                    results.append(res)
 
         return results
 

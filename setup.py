@@ -24,6 +24,7 @@ requirements = [
     'apache-libcloud',
     'fastparquet',
     'pycrypto'
+    'seaborn>=0.9.0'
 ]
 
 dependency_links = []
