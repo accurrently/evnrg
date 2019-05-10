@@ -147,7 +147,7 @@ class DaskJobRunner(object):
         bbpath = 'results/' + rid + '/scenarios/'
 
         for sc in scenarios:
-            scenario: Scenario
+            sc: Scenario
 
             scenario_long = []
             scenario_long = dask.delayed(scenario_long)
@@ -159,7 +159,7 @@ class DaskJobRunner(object):
             idle_load = sc.idle_load_kw
             sid = sc.run_id
 
-            bpath = bbpath + scenario.run_id
+            bpath = bbpath + sc.run_id
 
 
             for ds in datasets:
