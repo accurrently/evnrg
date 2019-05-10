@@ -151,10 +151,10 @@ class DaskJobRunner(object):
             sc: Scenario
 
             scenario_long = []
-            scenario_long = dask.delayed(scenario_long)
+            #scenario_long = dask.delayed(scenario_long)
 
             scenario_short = []
-            scenario_short = dask.delayed(scenario_short)
+            #scenario_short = dask.delayed(scenario_short)
 
             #sc = dask.delayed(scenario)
             idle_load = sc.idle_load_kw
@@ -169,7 +169,7 @@ class DaskJobRunner(object):
                 
                 fid = ds.dataset_id                
 
-                meta = dask.delayed(dict)(
+                meta = dict(
                     scenario=sid,
                     fleet=fid,
                     idle_load=idle_load
