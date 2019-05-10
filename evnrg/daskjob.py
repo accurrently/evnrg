@@ -184,14 +184,21 @@ class DaskJobRunner(object):
                 )
 
                 
-                fuel_df = sim_result[0]
-                batt_df = sim_result[1],
-                defer_df = sim_result[2],
-                demand_df = sim_result[3]
-                nrg_df = sim_result[4]
-                evse_df = sim_result[5]
+                fuel_df = sim_result.fuel
+                batt_df = sim_result.battery
+                defer_df = sim_result.deferred
+                demand_df = sim_result.demand
+                nrg_df = sim_result.energy
+                evse_df = sim_result.evse_info
 
-                #sim_results = [fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df]
+                sim_results = [
+                    fuel_df,
+                    batt_df,
+                    defer_df,
+                    demand_df,
+                    nrg_df,
+                    evse_df
+                ]
                 
                 for i in range(6):
                     outputs.extend(

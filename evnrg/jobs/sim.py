@@ -638,6 +638,13 @@ def simulation_loop_delayed(
         )
     )
 
+class SimResult(NamedTuple):
+    fuel: pd.DataFrame
+    battery: pd.DataFrame
+    deferred: pd.DataFrame
+    demand: pd.DataFrame
+    energy: pd.DataFrame
+    evse_info: pd.DataFrame
 
 def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
     """Runs a simulation with a given scenario by
@@ -710,4 +717,4 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
         raise e
     finally:
         st.cleanup()
-    return out
+    return SimResult(*out)
