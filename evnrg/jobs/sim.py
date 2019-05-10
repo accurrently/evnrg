@@ -449,7 +449,7 @@ def simulation_loop(
     queue_soc: bool = False,
     soc_buffer: float = 0.2):
 
-    if not distance:
+    if not trips:
         raise ValueError(
             'There\'s no data!'
         )
