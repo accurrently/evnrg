@@ -169,11 +169,11 @@ class DaskJobRunner(object):
                 
                 fid = ds.dataset_id                
 
-                meta = dict(
-                    scenario=sid,
-                    fleet=fid,
-                    idle_load=idle_load
-                )
+               # meta = dict(
+               #     scenario=sid,
+               #     fleet=fid,
+               #     idle_load=idle_load
+               # )
 
                 sim_result = dask.delayed(pd.DataFrame, nout=6)
 
@@ -207,7 +207,7 @@ class DaskJobRunner(object):
                         'fuel',
                         si,
                         basepath=bpath,
-                        meta=meta
+                #        meta=meta
                     )
                 )
                 outputs.extend(
@@ -216,7 +216,7 @@ class DaskJobRunner(object):
                         'battery',
                         si,
                         basepath=bpath,
-                        meta=meta
+                #        meta=meta
                     )
                 )
                 outputs.extend(
@@ -225,7 +225,7 @@ class DaskJobRunner(object):
                         'deferred',
                         si,
                         basepath=bpath,
-                        meta=meta
+                #        meta=meta
                     )
                 )
                 outputs.extend(
@@ -234,7 +234,7 @@ class DaskJobRunner(object):
                         'demand',
                         si,
                         basepath=bpath,
-                        meta=meta
+                #        meta=meta
                     )
                 )
                 outputs.extend(
@@ -243,7 +243,7 @@ class DaskJobRunner(object):
                         'energy',
                         si,
                         basepath=bpath,
-                        meta=meta
+                #        meta=meta
                     )
                 )
                 outputs.extend(
@@ -252,7 +252,7 @@ class DaskJobRunner(object):
                         'evse_info',
                         si,
                         basepath=bpath,
-                        meta=meta
+                #        meta=meta
                     )
                 )
                 
