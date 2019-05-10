@@ -207,8 +207,8 @@ class DaskJobRunner(object):
                     away_banks,
                     mask,
                     sc.interval_min,
-                    sc.home_thresh_min,
-                    sc.away_thresh_min,
+                    sc.home_threshold_min,
+                    sc.away_threshold_min,
                     sc.idle_load_kw,
                     False,
                     sc.soc_deferment_buffer
