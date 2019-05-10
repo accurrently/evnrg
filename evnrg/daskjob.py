@@ -175,8 +175,8 @@ class DaskJobRunner(object):
                     idle_load=idle_load
                 )
 
+                sim_result = dask.delayed(pd.DataFrame, nout=6)
                 
-
                 sim_result = dask.delayed(sim_loop_job, nout=6)(
                     ds,
                     sc,
