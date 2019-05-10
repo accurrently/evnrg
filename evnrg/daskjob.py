@@ -176,8 +176,11 @@ class DaskJobRunner(object):
 
                 
 
-                
-
+                sim_result = dask.delayed(sim_loop_job)(
+                    ds,
+                    sc,
+                    si
+                )
                 
 
                 for out_df, out_name in zip(sim_result, sim_outputs):
