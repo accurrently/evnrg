@@ -453,7 +453,7 @@ def simulation_loop(
 
     nrows = distance.shape[0]
     nvehicles = fleet.shape[0]
-    dshape = distance.shape
+    dshape = (nrows, nvehicles)
     nevse = home_bank.shape[0]
 
     fuel_use = np.zeros(dshape, dtype=np.float32)
