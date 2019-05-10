@@ -16,6 +16,7 @@ from ..powertrain import Powertrain, PType
 from ..plug import DCPlug
 from .types import vehicle_, evse_
 from .utils import isin_
+from ..datastorage import DataHandler, DatasetInfo, StorageInfo
 
 
 @nb.njit(cache=True)
@@ -436,7 +437,7 @@ def evse_usage(fleet, bank, min_per_interval):
     return out
 
 #@nb.njit(cache=True)
-def simulation_loop(
+def simulation_loop_delayed(
     trips: pd.DataFrame,
     fleet: np.array,
     home_bank: np.array,
@@ -636,3 +637,77 @@ def simulation_loop(
             index=trips.index
         )
     )
+
+
+def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
+    """Runs a simulation with a given scenario by
+    downloading data, running the simulation, and uploading results.
+
+    Args:
+        sc (Scenario): The scenario structure to use.
+    
+    Returns:
+        A `SimulationResult` with all the relevant energy data.
+    """
+
+    sim_start = datetime.now().strftime('%Y%m%d-%H%M%S')
+    
+    st = DataHandler(storage_info)
+
+    try:
+        # First pull down the data
+        
+        df = st.read_data(ds.obj_path)
+
+        df_index = df.index
+
+        rows = len(df_index)
+
+        interval_len = df.reset_index()['index'][:2].diff()[1].seconds / 60.0
+
+        # Basic rules creation for now
+
+        mask = pd.Series(
+            np.zeros(df.values.shape[0], dtype=np.bool_),
+            index=df.index
+        )
+
+        for mask_rule in sc.home_mask_rules:
+            if mask_rule.get('type') == 'time':
+                begin = mask_rule.get('begin', '23:55')
+                end = mask_rule.get('end', '00:00')
+                mask[df.between_time(begin, end).index] = True
+
+        # Create the fleet
+        fleet = fleet_from_df(df, sc.powertrains, sc.distribution)
+
+        fleet_size = fleet.shape[0]
+
+        home_banks = make_evse_banks(sc.home_banks, fleet_size)
+
+        away_banks = make_evse_banks(sc.away_banks, fleet_size)
+        away_banks[:]['power'] = away_banks[:]['power_max']
+
+        num_banks = home_banks.shape[0]
+
+        use_soc_queue = False
+
+        timer_begin = timer()
+        out =  simulation_loop_delayed(
+            df,
+            fleet,
+            home_banks,
+            away_banks,
+            mask.values,
+            interval_len,
+            sc.home_threshold_min,
+            sc.away_threshold_min,
+            sc.idle_load_kw,
+            use_soc_queue,
+            sc.soc_deferment_buffer
+        )
+    except Exception as e:
+        raise e:
+    finally:
+        st.cleanup()
+    return out

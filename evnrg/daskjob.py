@@ -31,7 +31,7 @@ from .jobs.data import (
     make_mask
 )
 from .jobs.sim import (
-    simulation_loop as sim_loop_job
+    run_simulation as sim_loop_job
 )
 from .jobs.summarize import (
     energy_info,
@@ -176,43 +176,9 @@ class DaskJobRunner(object):
 
                 
 
-                trips = dask.delayed(load_data)(ds, storage_info)
-
-                fleet = dask.delayed(fleet_from_df)(
-                    trips,
-                    sc.powertrains, 
-                    sc.distribution
-                )
-
-                fleet_size = fleet.shape[0]
-
-                home_banks = dask.delayed(make_evse_banks)(
-                    sc.home_banks,
-                    fleet_size
-                )
-
-                away_banks = dask.delayed(make_evse_banks)(
-                    sc.away_banks,
-                    fleet_size,
-                    True
-                )
                 
 
-                mask = dask.delayed(make_mask)(sc, trips)
-
-                sim_result = sim_loop_job(
-                    trips,
-                    fleet,
-                    home_banks,
-                    away_banks,
-                    mask,
-                    sc.interval_min,
-                    sc.home_threshold_min,
-                    sc.away_threshold_min,
-                    sc.idle_load_kw,
-                    False,
-                    sc.soc_deferment_buffer
-                )
+                
 
                 for out_df, out_name in zip(sim_result, sim_outputs):
                     outputs.extend(
