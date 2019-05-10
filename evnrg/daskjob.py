@@ -19,7 +19,10 @@ from .datastorage import StorageInfo
 from .simulation_nb import run_simulation as nb_run_simulation
 
 from .fuels import CA_MARGINAL_ELEC_CO2
-
+from .jobs.types import (
+    make_evse_banks,
+    make_fleet
+)
 from .jobs.data import (
     load_data,
     write_data,
