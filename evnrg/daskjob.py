@@ -191,18 +191,18 @@ class DaskJobRunner(object):
                 nrg_df = sim_result[4]
                 evse_df = sim_result[5]
 
-                sim_results = [fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df]
+                #sim_results = [fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df]
                 
-
-                outputs.extend(
-                    dask.delayed(write_data_iter)(
-                        sim_results,
-                        sim_outputs,
-                        si,
-                        basepath=bpath,
-                        meta=meta
+                for i in range(6):
+                    outputs.extend(
+                        dask.delayed(write_data)(
+                            sim_result[i],
+                            sim_outputs[i],
+                            si,
+                            basepath=bpath,
+                            meta=meta
+                        )
                     )
-                )
                 
 
 
