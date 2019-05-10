@@ -176,7 +176,7 @@ class DaskJobRunner(object):
                 )
 
                 sim_result = dask.delayed(pd.DataFrame, nout=6)
-                
+
                 sim_result = dask.delayed(sim_loop_job, nout=6)(
                     ds,
                     sc,
@@ -184,12 +184,19 @@ class DaskJobRunner(object):
                 )
 
                 
-                fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df = sim_result
+                fuel_df = sim_result[0]
+                batt_df = sim_result[1],
+                defer_df = sim_result[2],
+                demand_df = sim_result[3]
+                nrg_df = sim_result[4]
+                evse_df = sim_result[5]
+
+                sim_results = [fuel_df, batt_df, defer_df, demand_df, nrg_df, evse_df]
                 
 
                 outputs.extend(
                     dask.delayed(write_data_iter)(
-                        sim_result,
+                        sim_results,
                         sim_outputs,
                         si,
                         basepath=bpath,
