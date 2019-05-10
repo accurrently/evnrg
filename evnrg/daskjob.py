@@ -200,16 +200,61 @@ class DaskJobRunner(object):
                     evse_df
                 ]
                 
-                for i in range(6):
-                    outputs.extend(
-                        dask.delayed(write_data)(
-                            sim_result[i],
-                            sim_outputs[i],
-                            si,
-                            basepath=bpath,
-                            meta=meta
-                        )
+
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        fuel_df,
+                        'fuel',
+                        si,
+                        basepath=bpath,
+                        meta=meta
                     )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        batt_df,
+                        'battery',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        defer_df,
+                        'deferred',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        demand_df,
+                        'demand',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        nrg_df,
+                        'energy',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
+                outputs.extend(
+                    dask.delayed(write_data)(
+                        evse_df,
+                        'evse_info',
+                        si,
+                        basepath=bpath,
+                        meta=meta
+                    )
+                )
                 
 
 
