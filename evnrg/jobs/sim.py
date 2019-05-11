@@ -604,11 +604,11 @@ def simulation_loop_delayed(
     else:
         home_bank_names = ['evse_null']
     
-    if elec_demand.shape[1] < 1:
-        elec_demand = np.zeros(nrows, dtype=np.float32)
+    if np.ndim(elec_demand) < 2:
+        elec_demand = np.zeros((nrows,1), dtype=np.float32)
     
-    if elec_energy.shape[1] < 1:
-        elec_energy = np.zeros(nrows, dtype=np.float32)
+    if np.ndim(elec_energy) < 2:
+        elec_energy = np.zeros((nrows,1), dtype=np.float32)
 
     
     return (
