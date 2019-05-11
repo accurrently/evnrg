@@ -585,21 +585,30 @@ def simulation_loop_delayed(
 
     
     home_bank_names = []
-    for i in range(home_bank.shape[0]):
-        if home_bank[i]['dc']:
-            home_bank_names.append(
-                'evse{}_{}kW_dc'.format(
-                    i,
-                    home_bank[i]['power_max']
+    if home_bank.shape[0] > 0:
+        for i in range(home_bank.shape[0]):
+            if home_bank[i]['dc']:
+                home_bank_names.append(
+                    'evse{}_{}kW_dc'.format(
+                        i,
+                        home_bank[i]['power_max']
+                    )
                 )
-            )
-        else:
-            home_bank_names.append(
-                'evse{}_{}kW_ac'.format(
-                    i,
-                    home_bank[i]['power_max']
+            else:
+                home_bank_names.append(
+                    'evse{}_{}kW_ac'.format(
+                        i,
+                        home_bank[i]['power_max']
+                    )
                 )
-            )
+    else:
+        home_bank_names = ['evse_null']
+    
+    if elec_demand.shape[1] < 1:
+        elec_demand = np.zeros(nrows, dtype=np.float32)
+    
+    if elec_energy.shape[1] < 1:
+        elec_energy = np.zeros(nrows, dtype=np.float32)
 
     
     return (
@@ -624,13 +633,13 @@ def simulation_loop_delayed(
         # Elec Demand
         pd.DataFrame(
             data=elec_demand,
-            columns=home_bank_names,
+            columns=np.array(home_bank_names),
             index=trips.index
         ),
         # Elec Energy
         pd.DataFrame(
             data=elec_energy,
-            columns=home_bank_names,
+            columns=np.array(home_bank_names),
             index=trips.index
         ),
 
