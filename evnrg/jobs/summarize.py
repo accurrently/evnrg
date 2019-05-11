@@ -141,7 +141,7 @@ def energy_info(
  #   drive_utilization
  #   """
 
-    df['realtime_elec_co2'] = df['home_demand_kW'] * grid_ci * (interval_len/60.)
+    df['realtime_elec_ghg_kgCO2'] = df['home_demand_kW'] * grid_ci * (interval_len/60.)
     df['fleet'] = fleet_name
     df['scenario'] = scenario_name
 
