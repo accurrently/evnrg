@@ -9,6 +9,7 @@ import math
 import logging
 from timeit import default_timer as timer
 import pandas as pd
+import numpy as np
 from datetime import datetime
 import seaborn as sns
 
