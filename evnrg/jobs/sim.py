@@ -635,7 +635,10 @@ def simulation_loop_delayed(
                 'queue_length': queue_length
             },
             index=trips.index
-        )
+        ),
+        # Arrays
+        fleet,
+        home_bank
     )
 
 class SimResult(NamedTuple):
@@ -645,6 +648,8 @@ class SimResult(NamedTuple):
     demand: pd.DataFrame
     energy: pd.DataFrame
     evse_info: pd.DataFrame
+    fleet: np.array
+    home_bank: np.array
 
 def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
     """Runs a simulation with a given scenario by

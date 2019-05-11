@@ -190,6 +190,8 @@ class DaskJobRunner(object):
                 demand_df = sim_result.demand
                 nrg_df = sim_result.energy
                 evse_df = sim_result.evse_info
+                fleet = sim_result.fleet
+                home_bank = sim_result.home_bank
 
                 sim_results = [
                     fuel_df,
@@ -260,7 +262,7 @@ class DaskJobRunner(object):
                     fname=fid,
                     scname=sid
                 )
-                
+
                 scenario_short.append(nrg_summary)
 
                 price_data.append(
