@@ -311,7 +311,7 @@ class DaskJobRunner(object):
                         'col': 'elec_price',
                         'row': 'cost_type',
                     },
-                    map_func=sns.plot,
+                    map_func=sns.barplot,
                     map_opts={
                         'hue': 'fleet',
                         'x': 'fuel_price',
@@ -348,7 +348,7 @@ class DaskJobRunner(object):
                     'col': 'fleet',
                     'row': 'emissions',
                 },
-                map_func=sns.plot,
+                map_func=sns.barplot,
                 map_opts={
                     'hue': 'scenario',
                     'x': 'scenario',
