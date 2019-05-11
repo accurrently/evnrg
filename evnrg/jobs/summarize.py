@@ -67,8 +67,6 @@ def record_energy_info(
         total_fuel[i] = idle_fuel[i] + drive_fuel[i]
         total_battery[i] = idle_battery[i] + drive_battery[i]
 
-@nb.vectorize(nopython=True)
-def 
 
 def energy_info(
     fleet_name: str,
