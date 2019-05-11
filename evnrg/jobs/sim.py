@@ -636,9 +636,10 @@ def simulation_loop_delayed(
             },
             index=trips.index
         ),
-        # Arrays
+        # Arrays and DFS
         fleet,
-        home_bank
+        home_bank,
+        trips
     )
 
 class SimResult(NamedTuple):
@@ -650,6 +651,7 @@ class SimResult(NamedTuple):
     evse_info: pd.DataFrame
     fleet: np.array
     home_bank: np.array
+    trips: pd.DataFrame
 
 def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
     """Runs a simulation with a given scenario by

@@ -192,6 +192,7 @@ class DaskJobRunner(object):
                 evse_df = sim_result.evse_info
                 fleet = sim_result.fleet
                 home_bank = sim_result.home_bank
+                trips = sim_result.trips
 
                 sim_results = [
                     fuel_df,
