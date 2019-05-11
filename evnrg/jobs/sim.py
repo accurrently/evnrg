@@ -585,7 +585,7 @@ def simulation_loop_delayed(
 
     
     home_bank_names = []
-    for i in (home_bank.shape[0]):
+    for i in range(home_bank.shape[0]):
         if home_bank[i]['dc']:
             home_bank_names.append(
                 'evse{}_{}kW_dc'.format(
