@@ -34,7 +34,7 @@ def record_energy_info(
         drive_battery[i] = 0
         n_used = 0
         fuel_co2 = 0.
-        for j in range[distance.shape[1]]:
+        for j in range(distance.shape[1]):
             # Idle
             if distance[i, j] < 0:
                 n_used += 1
