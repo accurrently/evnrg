@@ -452,7 +452,7 @@ def simulation_loop_delayed(
     queue_soc: bool = False,
     soc_buffer: float = 0.2):
 
-    if not trips:
+    if (not isinstance(trips)) or trips.empty:
         raise ValueError(
             'There\'s no data!'
         )
