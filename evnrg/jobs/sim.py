@@ -693,7 +693,7 @@ def run_simulation(ds: DatasetInfo, sc: Scenario, storage_info: StorageInfo):
 
         rows = len(df_index)
 
-        interval_len = df.reset_index()['index'][:2].diff()[1].seconds / 60.0
+        interval_len = df.index.to_series().diff().min().seconds / 60.0
 
         # Basic rules creation for now
 

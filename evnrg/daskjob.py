@@ -226,7 +226,7 @@ class DaskJobRunner(object):
                     fleet,
                     trips,
                     CA_MARGINAL_ELEC_CO2,
-                    trips.index.to_series.diff().min().seconds / 60.0,
+                    trips.index.to_series().diff().min().seconds / 60.0,
                     fuel_df.values,
                     batt_df.values,
                     demand_df.values
