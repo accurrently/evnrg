@@ -4,6 +4,7 @@ from typing import NamedTuple
 import uuid
 
 from timeit import default_timer as timer
+from datetime import datetime
 
 import numba as nb
 import numpy as np
