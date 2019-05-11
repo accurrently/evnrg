@@ -156,6 +156,8 @@ class DaskJobRunner(object):
             scenario_short = []
             #scenario_short = dask.delayed(scenario_short)
 
+            fleets_deferred = []
+
             #sc = dask.delayed(scenario)
             idle_load = sc.idle_load_kw
             sid = sc.run_id
@@ -250,9 +252,9 @@ class DaskJobRunner(object):
                 defer_totals = dask.delayed(defer_df.apply)(sum, axis=1)
                 defer_totals = dask.delayed(defer_totals.rename)('deferred')
 
-                fleets_deferred.append(
-                    defer_totals
-                )
+                #fleets_deferred.append(
+                #    defer_totals
+                #)
 
                 dask.delayed(scenario_long.append)(nrg_nfo_df)
                 dask.delayed(scenario_long.append)(defer_totals)
