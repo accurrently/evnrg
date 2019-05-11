@@ -67,6 +67,8 @@ def record_energy_info(
         total_fuel[i] = idle_fuel[i] + drive_fuel[i]
         total_battery[i] = idle_battery[i] + drive_battery[i]
 
+@nb.vectorize(nopython=True)
+def 
 
 def energy_info(
     fleet_name: str,
@@ -177,9 +179,12 @@ def add_datetime_cols( df: pd.DataFrame ):
     holidays = cal.holidays(start=df.index.date.min(), end=df.index.date.max())
 
     df['time'] = df.index.time
-    df['weekend_or_holiday'] = (df.index.weekday >= 5) or (df.index.date in holidays)
-    df['day_of_week'] = df.index.day_name()
     df['date'] = df.index.date
+    df['weekend_or_holiday'] = df.index.to_series().apply(
+        lambda x: (x.weekday() >= 5) or (x.date() in holidays)
+    )
+    df['day_of_week'] = df.index.day_name()
+    
     return df
 
 
