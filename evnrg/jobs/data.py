@@ -43,7 +43,7 @@ def write_data(
             df,
             obj_path=basepath,
             uid=name,
-            formats = formats,
+            fmt=format,
             meta=meta
         )
     except Exception as e:
