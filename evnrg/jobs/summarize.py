@@ -166,7 +166,7 @@ def summarize_energy_info(
             'total_battery_use_kWh': df['total_battery_use_kWh'].sum(),
             'total_ghg_kgCO2': df['total_ghg_kgCO2'].sum(),
             'total_elec_ghg_kgCO2': df['realtime_elec_ghg_kgCO2'].sum(),
-            'fleet_utilization_mean': df['fleet_utilization_mean'].mean(),
+            'fleet_utilization_mean': df['fleet_utilization'].mean(),
             'fleet_utilization_max': df['fleet_utilization'].max(),
         }
     )
