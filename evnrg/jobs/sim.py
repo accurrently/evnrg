@@ -20,6 +20,11 @@ from .utils import isin_
 from .data import fleet_from_df, banks_from_df, make_mask, write_data, load_data
 from ..datastorage import DataHandler, DatasetInfo, StorageInfo
 
+DCPLUG_CHADEMO = int(DCPlug.CHADEMO)
+DCPLUG_TESLA = int(DCPlug.TESLA)
+DCPLUG_COMBO = int(DCPlug.COMBO)
+DCPLUG_NONE = int(DCPlug.NONE)
+
 
 @nb.njit(cache=True)
 def bank_enqueue(idx, vid, soc, fleet, queue, queue_soc):
@@ -85,11 +90,11 @@ def get_connect_evse_id(vid, soc, fleet, bank, away_bank = False):
             # DCFC
             if bank[i]['dc'] and (fleet[vid]['dc_max'] > 0):
                 can_connect = False
-                if (fleet[vid]['dc_plug'] == DCPLUG_CHADEMO) and bank[i]['plug_chademo']:
+                if (fleet[vid]['dc_plug'] == DCPlug.CHADEMO) and bank[i]['plug_chademo']:
                     can_connect = True
-                elif (fleet[vid]['dc_plug'] == DCPLUG_COMBO) and bank[i]['plug_combo']:
+                elif (fleet[vid]['dc_plug'] == DCPlug.COMBO) and bank[i]['plug_combo']:
                     can_connect = True
-                elif (fleet[vid]['dc_plug'] == DCPLUG_TESLA) and bank[i]['plug_tesla']:
+                elif (fleet[vid]['dc_plug'] == DCPlug.TESLA) and bank[i]['plug_tesla']:
                     can_connect = True
                 
                 if can_connect:
