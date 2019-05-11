@@ -169,11 +169,11 @@ class DaskJobRunner(object):
                 
                 fid = ds.dataset_id                
 
-               # meta = dict(
-               #     scenario=sid,
-               #     fleet=fid,
-               #     idle_load=idle_load
-               # )
+                meta = dict(
+                    scenario=sid,
+                    fleet=fid,
+                    idle_load=idle_load
+                )
 
                 sim_result = dask.delayed(pd.DataFrame, nout=6)
 
@@ -199,68 +199,20 @@ class DaskJobRunner(object):
                     nrg_df,
                     evse_df
                 ]
-                
 
-                outputs.extend(
-                    dask.delayed(write_data)(
-                        fuel_df,
-                        'fuel',
-                        si,
-                        basepath=bpath,
-                #        meta=meta
-                    )
-                )
-                outputs.extend(
-                    dask.delayed(write_data)(
-                        batt_df,
-                        'battery',
-                        si,
-                        basepath=bpath,
-                #        meta=meta
-                    )
-                )
-                outputs.extend(
-                    dask.delayed(write_data)(
-                        defer_df,
-                        'deferred',
-                        si,
-                        basepath=bpath,
-                #        meta=meta
-                    )
-                )
-                outputs.extend(
-                    dask.delayed(write_data)(
-                        demand_df,
-                        'demand',
-                        si,
-                        basepath=bpath,
-                #        meta=meta
-                    )
-                )
-                outputs.extend(
-                    dask.delayed(write_data)(
-                        nrg_df,
-                        'energy',
-                        si,
-                        basepath=bpath,
-                #        meta=meta
-                    )
-                )
-                outputs.extend(
-                    dask.delayed(write_data)(
-                        evse_df,
-                        'evse_info',
-                        si,
-                        basepath=bpath,
-                #        meta=meta
-                    )
-                )
-                
-
-
-
-
-                
+                for sr, so in zip(sim_results, sim_outputs):
+                    for fmt in ('records, csv, json'):
+                        outputs.append(
+                            dask.delayed(write_data)(
+                                df=sr,
+                                ds=ds,
+                                si=si,
+                                name=so,
+                                basepath=bpath,
+                                meta=meta,
+                                format=fmt
+                            )
+                        )
 
                 nrg_nfo_df = dask.delayed(energy_info)(
                     fid,
@@ -271,13 +223,26 @@ class DaskJobRunner(object):
                     trips.index.to_series.diff().min().seconds / 60.0,
                     fuel_df.values,
                     batt_df.values,
-                    demand_df.values,
-
+                    demand_df.values
                 )
 
                 nrg_nfo_df = dask.delayed(add_datetime_cols)(
                     nrg_nfo_df
                 )
+
+                for fmt in ('records, csv, json'):
+                    outputs.append(
+                        dask.delayed(write_data)(
+                            df=nrg_nfo_df,
+                            ds=ds,
+                            si=si,
+                            name='energy_info',
+                            basepath=bpath,
+                            meta=meta,
+                            format=fmt
+                        )
+                    )
+                
 
                 defer_totals = dask.delayed(defer_df.apply)(sum, axis=1)
                 defer_totals = dask.delayed(defer_totals.rename)('deferred')
@@ -295,9 +260,7 @@ class DaskJobRunner(object):
                     fname=fid,
                     scname=sid
                 )
-
-
-
+                
                 scenario_short.append(nrg_summary)
 
                 price_data.append(
@@ -390,18 +353,16 @@ class DaskJobRunner(object):
             )
         )
 
-        outputs.extend(
+        outputs.append(
             dask.delayed(write_data)(
                 summary_df,
                 ds,
                 si,
                 basepath=bbpath,
                 name='overall-summary',
-                formats='csv'
+                format='csv'
             )
-        )
-
-            
+        )            
             
         scenario_long_df = dask.delayed(pd.concat)(
             scenario_long,
@@ -440,14 +401,14 @@ class DaskJobRunner(object):
             )
         )
 
-        outputs.extend(
+        outputs.append(
             dask.delayed(write_data)(
                 summary_df,
                 ds,
                 si,
                 name='electrical-demand',
                 basepath=bbpath,
-                formats='csv'
+                format='csv'
             )
         )
     

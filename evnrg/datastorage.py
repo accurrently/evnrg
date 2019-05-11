@@ -287,45 +287,67 @@ class DataHandler(object):
         return out
 
 
-    def upload_data(self, df: pd.DataFrame, obj_path: str, 
-                    formats: str = 'parquet', uid: str = None,
+    def upload_df(self, df: pd.DataFrame, obj_path: str, 
+                    fmt: str = 'parquet', uid: str = None,
                     remove_on_success: bool = True,
                     use_cleanup: bool = True,
                     meta: dict = {}):
 
         if not uid:
             uid = uuid.uuid4().hex
-
-        fmts = re.findall(r'[\w]+', formats)
-
+        
         remote_base = obj_path.rstrip('/') + '/' + uid
 
-        results = []
+        res = None
         
+        w = {
+            'parquet': (DataHandler.write_parquet, 'parquet'),
+            'csv': (DataHandler.write_csv, 'csv'),
+            'records': (DataHandler.write_records, 'records.json'),
+            'json': (DataHandler.write_json, 'json')
+        }.get(fmt)
+
+        if w:
+            wf, ext = w
+            if isinstance(wf, callable) and isinstance(ext, str):
+                p = wf(df, self.cache_dir)
+
+                res = self.upload_file(
+                    local_path=p,
+                    remote_path=remote_base + '.' + ext,
+                    file_type=ext,
+                    remove_on_success=remove_on_success,
+                    use_cleanup=use_cleanup,
+                    meta=meta
+                )
+
+        return res
+    
+    def upload_data(self, df: pd.DataFrame, obj_path: str, 
+                    formats: str = 'parquet', uid: str = None,
+                    remove_on_success: bool = True,
+                    use_cleanup: bool = True,
+                    meta: dict = {}):
+        
+        fmts = re.findall(r'[\w]+', formats)
+
+        if not uid:
+            uid = uuid.uuid4().hex
+        results = []
         for fmt in fmts:
-            w = {
-                'parquet': (DataHandler.write_parquet, 'parquet'),
-                'csv': (DataHandler.write_csv, 'csv'),
-                'records': (DataHandler.write_records, 'records.json'),
-                'json': (DataHandler.write_json, 'json')
-            }.get(fmt)
-
-            if w:
-                wf, ext = w
-                if isinstance(wf, callable) and isinstance(ext, str):
-                    p = wf(df, self.cache_dir)
-
-                    res = self.upload_file(
-                        local_path=p,
-                        remote_path=remote_base + '.' + ext,
-                        file_type=ext,
-                        remove_on_success=remove_on_success,
-                        use_cleanup=use_cleanup,
-                        meta=meta
-                    )
-                    results.append(res)
-
+            results.append(
+                self.upload_df(
+                    df,
+                    obj_path,
+                    fmt,
+                    uid,
+                    remove_on_success,
+                    use_cleanup,
+                    meta
+                )
+            )
         return results
+
 
     def read_data(self, obj_name: str, fmt: str = 'parquet',
                   read_fn=None, arguments: dict = {}):

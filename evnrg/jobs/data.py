@@ -33,14 +33,13 @@ def write_data(
     basepath: str,
     name: str = None,
     meta: dict = {},
-    formats = 'records json csv'
-    ):
+    format = 'records'):
 
 
     st = DataHandler(si)
 
     try:
-        results = st.upload_data(
+        results = st.upload_df(
             df,
             obj_path=basepath,
             uid=name,
