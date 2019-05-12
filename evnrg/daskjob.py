@@ -257,9 +257,9 @@ class DaskJobRunner(object):
                 #    defer_totals
                 #)
 
-                dask.delayed(scenario_long.append)(nrg_nfo_df)
-                dask.delayed(scenario_long.append)(defer_totals)
-                dask.delayed(scenario_long.append)(evse_df)
+                scenario_long.append(nrg_nfo_df)
+                scenario_long.append(defer_totals)
+                scenario_long.append(evse_df)
 
                 nrg_summary = dask.delayed(summarize_energy_info)(
                     df=nrg_nfo_df,
