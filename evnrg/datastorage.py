@@ -309,17 +309,16 @@ class DataHandler(object):
 
         if w:
             wf, ext = w
-            if isinstance(wf, callable) and isinstance(ext, str):
-                p = wf(df, self.cache_dir)
+            p = wf(df, self.cache_dir)
 
-                res = self.upload_file(
-                    local_path=p,
-                    remote_path=remote_base + '.' + ext,
-                    file_type=ext,
-                    remove_on_success=remove_on_success,
-                    use_cleanup=use_cleanup,
-                    meta=meta
-                )
+            res = self.upload_file(
+                local_path=p,
+                remote_path=remote_base + '.' + ext,
+                file_type=ext,
+                remove_on_success=remove_on_success,
+                use_cleanup=use_cleanup,
+                meta=meta
+            )
 
         return res
     
