@@ -289,24 +289,29 @@ class DaskJobRunner(object):
                 ignore_index=True
             )
 
+            cost_agg_df = dask.delayed(pd.melt)(
+                cost_df,
+                id_vars=[
+                    'fuel_price',
+                    'elec_price',
+                    'fleet',
+                    'scenario'
+                ],
+                value_vars=[
+                    'idle_fuel_cost',
+                    'idle_elec_cost',
+                    'drive_fuel_cost',
+                    'drive_elec_cost',
+                    'total_running_cost',
+                ],
+                var_name='cost_type',
+                value_name='cost_usd'
+            )
+
             outputs.append(
                 dask.delayed(melt_and_plot_facets)(
-                    cost_df,
+                    cost_agg_df,
                     si,
-                    id_vars=[
-                        'fuel_price',
-                        'elec_price',
-                        'fleet'
-                    ],
-                    val_vars=[
-                        'idle_fuel_cost',
-                        'idle_elec_cost',
-                        'drive_fuel_cost',
-                        'drive_elec_cost',
-                        'total_running_cost',
-                    ],
-                    val_name='cost_usd',
-                    var_name='cost_type',
                     facet_opts={
                         'col': 'elec_price',
                         'row': 'cost_type',
@@ -314,7 +319,7 @@ class DaskJobRunner(object):
                     map_func=sns.barplot,
                     map_opts={
                         'hue': 'fleet',
-                        'x': 'fuel_price',
+                        'x': 'scenario',
                         'y': 'cost_usd'
                     },
                     basepath=bpath,
@@ -327,22 +332,26 @@ class DaskJobRunner(object):
             scenario_short
         )
 
+        summary_agg_df = dask.delayed(pd.melt)(
+            summary_df,
+            id_vars = [
+                'fleet',
+                'scenario'
+            ],
+            value_vars=[
+                'idle_ghg_kgCO2',
+                'drive_ghg_kgCO2',
+                'total_ghg_kgCO2',
+                'total_ghg_kgCO2'
+            ],
+            var_name='emissions',
+            value_name='kg_CO2e'
+        )
+
         outputs.append(
-            dask.delayed(melt_and_plot_facets)(
-                summary_df,
+            dask.delayed(plot_facets)(
+                summary_agg_df,
                 si,
-                id_vars=[
-                    'fleet',
-                    'scenario'
-                ],
-                val_vars=[
-                    'idle_ghg_kgCO2',
-                    'drive_ghg_kgCO2',
-                    'total_ghg_kgCO2',
-                    'total_ghg_kgCO2'
-                ],
-                val_name='kg_CO2e',
-                var_name='emissions',
                 facet_opts={
                     'col': 'fleet',
                     'row': 'emissions',
@@ -375,32 +384,54 @@ class DaskJobRunner(object):
             ignore_index=True
         )
 
+        scenario_long_agg_df = dask.delayed(pd.melt)(
+            scenario_long_df,
+            id_vars = [
+                'weekend_or_holiday',
+                'fleet',
+                'scenario',
+                'time'
+            ],
+            value_vars=[
+                'home_demand_kW',
+                'stopped_battery_capacity_kWh',
+            ],
+            var_name='metric',
+            value_name='value'
+        )
+
         outputs.append(
-            dask.delayed(melt_and_plot_facets)(
-                scenario_long_df,
+            dask.delayed(plot_facets)(
+                scenario_long_agg_df,
                 si,
-                id_vars=[
-                    'weekend_or_holiday',
-                    'fleet',
-                    'scenario',
-                    'time',
-                    
-                ],
-                val_vars=[
-                    'home_demand_kW',
-                    'stopped_battery_capacity_kWh',
-                ],
-                val_name='value',
-                var_name='metric',
                 facet_opts={
-                    'col': ('weekend_or_holiday', 'metric'),
+                    'col': 'weekend_or_holiday',
                     'row': 'scenario',
                 },
                 map_func=sns.lineplot,
                 map_opts={
                     'hue': 'fleet',
                     'x': 'time',
-                    'y': 'emissions'
+                    'y': 'home_demand_kW'
+                },
+                basepath=bbpath,
+                name='electrical_demand',
+            )
+        )
+
+        outputs.append(
+            dask.delayed(plot_facets)(
+                scenario_long_agg_df,
+                si,
+                facet_opts={
+                    'col': 'weekend_or_holiday',
+                    'row': 'scenario',
+                },
+                map_func=sns.lineplot,
+                map_opts={
+                    'hue': 'fleet',
+                    'x': 'time',
+                    'y': 'stopped_battery_capacity_kWh'
                 },
                 basepath=bbpath,
                 name='electrical_demand',

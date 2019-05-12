@@ -54,13 +54,9 @@ def chart_demand(
 
     return out
 
-def melt_and_plot_facets(
+def plot_facets(
     df: pd.DataFrame,
     si: StorageInfo,
-    id_vars: list,
-    val_vars: list,
-    var_name: str,
-    val_name: str,
     facet_opts: dict,
     map_func: callable,
     map_opts: dict,
@@ -69,22 +65,8 @@ def melt_and_plot_facets(
     use_legend: bool = True,
     meta: dict = {}):
 
-    dh = DataHandler(si)
-    p = si.gen_temp_path('png')
-
-    selection = []
-    selection.extend(id_vars)
-    selection.extend(val_vars)
-
-    fr = df[selection].melt(
-        id_vars=id_vars,
-        value_vars=val_vars,
-        var_name=var_name,
-        value_name=val_name
-    )
-
     g = sns.FacetGrid(
-        fr,
+        df,
         **facet_opts
     )
 
