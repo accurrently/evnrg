@@ -379,7 +379,7 @@ class DaskJobRunner(object):
                 scenario_long_df,
                 si,
                 id_vars=[
-                    'weekend_or_holiday'
+                    'weekend_or_holiday',
                     'fleet',
                     'scenario',
                     'time',
