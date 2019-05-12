@@ -43,7 +43,7 @@ from .summarize import (
 )
 from .charts import (
     chart_demand,
-    melt_and_plot_facets
+    plot_facets
 )
 
 def delayed_apply(input_obj, func: callable, **kwargs):
