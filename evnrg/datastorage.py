@@ -276,7 +276,7 @@ class DataHandler(object):
                 remote_path
             )
             if o:
-                if remove_local:
+                if remove_on_success:
                     os.remove(local_path)
 
                 out['uploaded'] = True
