@@ -2,9 +2,9 @@ import numpy as np
 import numba as nb
 import pandas as pd
 
-from ..evse import EVSEType
-from ..powertrain import Powertrain, PType
-from ..plug import DCPlug
+from .evse import EVSEType
+from .powertrain import Powertrain, PType
+from .plug import DCPlug
 
 evse_ = np.dtype([
     ('bank_id', np.uint64, 1),

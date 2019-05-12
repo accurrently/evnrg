@@ -4,7 +4,7 @@ import seaborn as sns
 
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 
-from ..datastorage import StorageInfo, DataHandler
+from .datastorage import StorageInfo, DataHandler
 from .data import write_data
 
 def chart_demand(

@@ -20,11 +20,11 @@ from .datastorage import StorageInfo
 from .simulation_nb import run_simulation as nb_run_simulation
 
 from .fuels import CA_MARGINAL_ELEC_CO2
-from .jobs.types import (
+from .types import (
     make_evse_banks,
     make_fleet
 )
-from .jobs.data import (
+from .data import (
     load_data,
     write_data,
     write_data_iter,
@@ -32,16 +32,16 @@ from .jobs.data import (
     banks_from_df,
     make_mask
 )
-from .jobs.sim import (
+from .sim import (
     run_simulation as sim_loop_job
 )
-from .jobs.summarize import (
+from .summarize import (
     energy_info,
     summarize_energy_info,
     add_datetime_cols,
     energy_pricing
 )
-from .jobs.charts import (
+from .charts import (
     chart_demand,
     melt_and_plot_facets
 )
