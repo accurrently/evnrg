@@ -309,7 +309,7 @@ class DaskJobRunner(object):
             )
 
             outputs.append(
-                dask.delayed(melt_and_plot_facets)(
+                dask.delayed(plot_facets)(
                     cost_agg_df,
                     si,
                     facet_opts={
