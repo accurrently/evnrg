@@ -72,7 +72,11 @@ def melt_and_plot_facets(
     dh = DataHandler(si)
     p = si.gen_temp_path('png')
 
-    fr = df.melt(
+    selection = []
+    selection.extend(id_vars)
+    selection.extend(val_vars)
+
+    fr = df[selection].melt(
         id_vars=id_vars,
         value_vars=val_vars,
         var_name=var_name,
@@ -83,7 +87,7 @@ def melt_and_plot_facets(
         fr,
         **facet_opts
     )
-    
+
     g.map(map_func, **map_opts)
     g.add_legend()
     g.savefig(p)

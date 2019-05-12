@@ -34,6 +34,7 @@ def record_energy_info(
         drive_battery[i] = 0
         n_used = 0
         fuel_co2 = 0.
+        total_demand[i] = 0.
         for j in range(distance.shape[1]):
             # Idle
             if distance[i, j] < 0:
@@ -48,6 +49,7 @@ def record_energy_info(
             # Stopped
             elif distance[i, j] == 0.:
                 stopped_battery[i] += battery[i, j]
+                total_demand[i] += demand[i, j]
             
             # Driving
             elif distance[i, j] > 0:
@@ -63,7 +65,6 @@ def record_energy_info(
         drive_co2[i] = (drive_battery[i] * grid_ci) + fuel_co2
         total_co2[i] = idle_co2[i] + drive_co2[i]        
         drive_utilization[i] = n_used / distance.shape[1]
-        total_demand[i] = demand[i, :].sum()
         total_fuel[i] = idle_fuel[i] + drive_fuel[i]
         total_battery[i] = idle_battery[i] + drive_battery[i]
 

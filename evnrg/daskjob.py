@@ -371,7 +371,8 @@ class DaskJobRunner(object):
             
         scenario_long_df = dask.delayed(pd.concat)(
             scenario_long,
-            axis=1
+            axis=0,
+            ignore_index=True
         )
 
         outputs.append(
