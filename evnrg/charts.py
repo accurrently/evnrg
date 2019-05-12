@@ -80,8 +80,10 @@ def melt_and_plot_facets(
     )
 
     g = sns.FacetGrid(
-        df.melt(**melt_opts),
-        **facet_opts)
+        fr,
+        **facet_opts
+    )
+    
     g.map(map_func, **map_opts)
     g.add_legend()
     g.savefig(p)
