@@ -268,7 +268,7 @@ class DataHandler(object):
 
         out = out.update(meta)
 
-        o = None
+
         for i in range(tries):
             o = self.driver.upload_object(
                 local_path,
@@ -298,7 +298,7 @@ class DataHandler(object):
         
         remote_base = obj_path.rstrip('/') + '/' + uid
 
-        res = None
+        # res = None
         
         w = {
             'parquet': (DataHandler.write_parquet, 'parquet'),
@@ -319,8 +319,12 @@ class DataHandler(object):
                 use_cleanup=use_cleanup,
                 meta=meta
             )
-
-        return res
+            return res
+        return {
+            'remote_path': remote_base + '.failure',
+            'file_type': 'failed',
+            'uploaded': False
+        }
     
     def upload_data(self, df: pd.DataFrame, obj_path: str, 
                     formats: str = 'parquet', uid: str = None,
