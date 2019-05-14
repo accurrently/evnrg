@@ -39,7 +39,10 @@ from .summarize import (
     energy_info,
     summarize_energy_info,
     add_datetime_cols,
-    energy_pricing
+    energy_pricing,
+    get_col,
+    sum_cols,
+    make_co2e_df
 )
 from .charts import (
     chart_demand,
@@ -146,6 +149,12 @@ class DaskJobRunner(object):
         price_data = []
 
         summarized_data = []
+
+        demand_data = []
+        total_co2e_data = []
+        idle_co2e_data = []
+        drive_co2e_data = []
+
         bbpath = 'results/' + rid + '/scenarios/'
 
         for sc in scenarios:
@@ -219,6 +228,44 @@ class DaskJobRunner(object):
                                 fmt=fmt
                             )
                         )
+                
+                demand_data.append(
+                    dask.delayed(sum_cols)(
+                        demand_df,
+                        trips
+                    )
+                )
+
+                co2e_df = dask.delayed(make_co2e_df)(
+                    trips,
+                    batt_df,
+                    CA_MARGINAL_ELEC_CO2,
+                    fleet               
+                )
+
+                idle_co2e_data.append(
+                    dask.delayed(get_col)(
+                        co2e_df,
+                        ds.dataset_id,
+                        'idle'
+                    )
+                )
+
+                drive_co2e_data.append(
+                    dask.delayed(get_col)(
+                        co2e_df,
+                        ds.dataset_id,
+                        'drive'
+                    )
+                )
+
+                total_co2e_data.append(
+                    dask.delayed(get_col)(
+                        co2e_df,
+                        ds.dataset_id,
+                        'total'
+                    )
+                )
 
                 nrg_nfo_df = dask.delayed(energy_info)(
                     fid,
@@ -282,6 +329,55 @@ class DaskJobRunner(object):
                     fleet=None,
                     idle_load=idle_load
             )
+
+            sc_demand_df = dask.delayed(pd.concat)(
+                demand_data,
+                axis=1
+            )
+
+            sc_demand_df = dask.delayed(add_datetime_cols)(
+                sc_demand_df
+            )
+
+            outputs.append(
+                dask.delayed(write_data)(
+                    sc_demand_df,
+                    ds,
+                    si,
+                    basepath=bbpath,
+                    name='demand',
+                    fmt='csv'
+                )
+            )
+
+            melted_demand_df = dask.delayed(pd.melt)(
+                sc_demand_df,
+                id_vars = [
+                    'hour24'
+                ],
+                value_vars=sc_demand_df.columns,
+                var_name='fleet',
+                value_name='demand_kW',
+                ignore_index=True
+            )
+
+            outputs.append(
+                dask.delayed(plot_facets)(
+                    melted_demand_df,
+                    si,
+                    facet_opts={
+                        'col': 'weekend_or_holiday'
+                    },
+                    map_func=sns.lineplot,
+                    map_opts={
+                        'hue': 'fleet',
+                        'x': 'hour24',
+                        'y': 'demand_kW'
+                    },
+                    basepath=bbpath,
+                    name='electric_demand',
+                )
+            )
             
             cost_df = dask.delayed(pd.concat)(
                 price_data,
@@ -327,7 +423,7 @@ class DaskJobRunner(object):
                         'col': 'elec_price',
                         'row': 'cost_type',
                     },
-                    map_func=sns.barplot,
+                    map_func=sns.lineplot,
                     map_opts={
                         'hue': 'fleet',
                         'x': 'scenario',

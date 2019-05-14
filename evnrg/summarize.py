@@ -196,6 +196,71 @@ def energy_pricing(
 
     return df
 
+def sum_cols(df: pd.DataFrame, sname: str):
+
+    out = pd.DataFrame(index = df.index)
+
+    out[sname] = df.apply(sum, axis=1)
+
+    return out
+
+def get_col(df: pd.DataFrame, new_name: str, colname: str):
+
+    out = df[[colname]]
+
+    out.columns = [new_name]
+
+    return out
+
+@nb.njit(cache=True)
+def calc_co2e(distance: np.array, battery: np.array, elec_ci: float, fleet: np.array):
+
+    out = np.zeros((3, distance.shape[1]), dtype=np.float32)
+
+    IDLE = 0
+    DRIVE = 1
+    TOTAL = 2
+    initial_battery = 
+
+     for j in range(distance.shape[1]):
+         idle_co2 = 0.
+         drive_co2 = 0.
+        # Idle
+        if distance[i, j] < 0:          
+            idle_co2 += fuel[i, j] * fleet[j]['fuel_co2e']
+            if i > 0:
+                idle_co2 += (battery[i - 1, j] - battery[i, j]) * elec_ci
+            else:
+                idle_co2 += (fleet[j]['ev_max_batt'] - battery[i, j]) * elec_ci
+        # Driving
+        elif distance[i, j] > 0:
+            drive_co2 += fuel[i, j] * fleet[j]['fuel_co2e']
+            if i > 0:
+                drive_co2 += (battery[i - 1, j] - battery[i, j]) * elec_ci
+            else:
+                drive_co2 += (fleet[j]['ev_max_batt'] - battery[i, j]) * elec_ci
+        out[IDLE] = idle_co2
+        out[DRIVE] = drive_co2
+        out[TOTAL] = idle_co2 + drive_co2
+    
+    return out
+
+def make_co2e_df(distance_df: pd.DataFrame, battery_df: pd.DataFrame, elec_ci, fleet):
+
+    arr = calc_co2e(distance.values, battery.valus, elec_ci, fleet)
+
+    out = pd.DataFrame(
+        data=arr,
+        columns = ['idle', 'drive', 'total'],
+        index=distance.index
+    )
+
+    return out
+
+
+
+
+
 
 
 
