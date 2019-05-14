@@ -4,6 +4,7 @@ import uuid
 import re
 import pathlib
 from typing import NamedTuple
+import tempfile
 
 from libcloud.storage.base import Object, Container, StorageDriver
 from libcloud.storage.types import (
@@ -190,10 +191,10 @@ class DataHandler(object):
                 os.remove(fn)
     
     @classmethod
-    def write_parquet(cls, df: pd.DataFrame, cache_dir: str):
+    def write_parquet(cls, df: pd.DataFrame, p: str): #cache_dir: str):
 
-        uid = uuid.uuid4().hex
-        p = os.path.join(cache_dir, uid) + '.csv'
+        #uid = uuid.uuid4().hex
+        #p = os.path.join(cache_dir, uid) + '.csv'
 
         df.to_parquet(
             p,
@@ -204,10 +205,10 @@ class DataHandler(object):
         return p
     
     @classmethod
-    def write_csv(cls, df: pd.DataFrame, cache_dir: str):
+    def write_csv(cls, df: pd.DataFrame, p: str):
 
-        uid = uuid.uuid4().hex
-        p = os.path.join(cache_dir, uid) + '.csv'
+        #uid = uuid.uuid4().hex
+        #p = os.path.join(cache_dir, uid) + '.csv'
 
         df.to_csv(
             p,
@@ -217,10 +218,10 @@ class DataHandler(object):
         return p
     
     @classmethod
-    def write_records(cls, df: pd.DataFrame, cache_dir: str):
+    def write_records(cls, df: pd.DataFrame, p: str):
 
-        uid = uuid.uuid4().hex
-        p = os.path.join(cache_dir, uid) + '.records.json'
+        #uid = uuid.uuid4().hex
+        #p = os.path.join(cache_dir, uid) + '.records.json'
 
         df.to_json(
             p,
@@ -232,10 +233,10 @@ class DataHandler(object):
         return p
     
     @classmethod
-    def write_json(cls, df: pd.DataFrame, cache_dir: str):
+    def write_json(cls, df: pd.DataFrame, p: str):
 
-        uid = uuid.uuid4().hex
-        p = os.path.join(cache_dir, uid) + '.records.json'
+        #uid = uuid.uuid4().hex
+        #p = os.path.join(cache_dir, uid) + '.records.json'
 
         df.to_json(
             p,
@@ -260,8 +261,6 @@ class DataHandler(object):
                 'Not found: {}'.format(local_path)
             )
         
-        
-
         success = False
 
         for i in range(tries):
@@ -271,13 +270,13 @@ class DataHandler(object):
                 remote_path
             )
             if o:
-                if remove_on_success and os.path.isfile(local_path):
-                    os.remove(local_path)
+                #if remove_on_success and os.path.isfile(local_path):
+                #    os.remove(local_path)
                 success = True
 
 
-        if use_cleanup:
-            self.temp.append(local_path)
+        #if use_cleanup:
+        #    self.temp.append(local_path)
         
         out = {
             'remote_path': remote_path,
@@ -312,17 +311,21 @@ class DataHandler(object):
 
         if w:
             wf, ext = w
-            p = wf(df, self.cache_dir)
+            tf = tempfile.NamedTemporaryFile()
+            try:
+                p = wf(df, tf.name)
 
-            res = self.upload_file(
-                local_path=p,
-                remote_path=remote_base + '.' + ext,
-                file_type=ext,
-                remove_on_success=remove_on_success,
-                use_cleanup=use_cleanup,
-                meta=meta
-            )
-            return res
+                res = self.upload_file(
+                    local_path=p,
+                    remote_path=remote_base + '.' + ext,
+                    file_type=ext,
+                    remove_on_success=remove_on_success,
+                    use_cleanup=False,
+                    meta=meta
+                )
+                return res
+            finally:
+                tf.close()
         return {
             'remote_path': remote_base + '.failure',
             'file_type': 'failed',
