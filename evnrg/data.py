@@ -33,7 +33,7 @@ def write_data(
     basepath: str,
     name: str = None,
     meta: dict = {},
-    format = 'records'):
+    fmt = 'records'):
 
 
     st = DataHandler(si)
@@ -43,7 +43,7 @@ def write_data(
             df,
             obj_path=basepath,
             uid=name,
-            fmt=format,
+            fmt=fmt,
             meta=meta
         )
     except Exception as e:

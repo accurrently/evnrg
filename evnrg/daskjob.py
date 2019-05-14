@@ -207,7 +207,9 @@ class DaskJobRunner(object):
                 ]
 
                 for sr, so in zip(sim_results, sim_outputs):
-                    for fmt in ('records, csv, json'):
+                    for fmt in ('records', 'csv', '
+                    
+                    json'):
                         outputs.append(
                             dask.delayed(write_data)(
                                 df=sr,
@@ -236,7 +238,7 @@ class DaskJobRunner(object):
                     nrg_nfo_df
                 )
 
-                for fmt in ('records, csv, json'):
+                for fmt in ('records', 'csv', 'json'):
                     outputs.append(
                         dask.delayed(write_data)(
                             df=nrg_nfo_df,
@@ -245,7 +247,7 @@ class DaskJobRunner(object):
                             name='energy_info',
                             basepath=bpath,
                             meta=meta,
-                            format=fmt
+                            fmt=fmt
                         )
                     )
                 
@@ -289,6 +291,8 @@ class DaskJobRunner(object):
                 ignore_index=True
             )
 
+
+
             cost_agg_df = dask.delayed(pd.melt)(
                 cost_df,
                 id_vars=[
@@ -307,6 +311,17 @@ class DaskJobRunner(object):
                 var_name='cost_type',
                 value_name='cost_usd'
             )
+
+            outputs.append(
+                dask.delayed(write_data)(
+                    cost_df,
+                    ds,
+                    si,
+                    basepath=bbpath,
+                    name='cost',
+                    fmt='csv'
+                )
+            )  
 
             outputs.append(
                 dask.delayed(plot_facets)(
@@ -374,7 +389,7 @@ class DaskJobRunner(object):
                 si,
                 basepath=bbpath,
                 name='overall-summary',
-                format='csv'
+                fmt='csv'
             )
         )            
             
@@ -445,7 +460,7 @@ class DaskJobRunner(object):
                 si,
                 name='electrical-demand',
                 basepath=bbpath,
-                format='csv'
+                fmt='csv'
             )
         )
     
