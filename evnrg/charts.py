@@ -68,8 +68,12 @@ def plot_facets(
     use_legend: bool = True,
     meta: dict = {}):
 
+    current_palette = sns.color_palette()
+    sns.palplot(current_palette)
+
     g = sns.FacetGrid(
         df,
+        margin_titles=True,
         **facet_opts
     )
 

@@ -120,27 +120,6 @@ def energy_info(
         df['total_ghg_kgCO2'].values,
         df['fleet_utilization'].values
     )
- #   """
- #   ,
- #   ,
- #   distance,
- #   initial_battery,
- #   fuel,
- #   battery,
- #   demand,
- #   idle_fuel,
- #   idle_battery,
- #   idle_co2,
- #   drive_fuel,
- #   drive_battery,
- #   drive_co2,
- #   stopped_battery,
- #   total_demand,
- #   total_fuel,
- #   total_battery,
- #   total_co2,
- #   drive_utilization
- #   """
 
     df['realtime_elec_ghg_kgCO2'] = df['home_demand_kW'] * grid_ci * (interval_len/60.)
     df['fleet'] = fleet_name

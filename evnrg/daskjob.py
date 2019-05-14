@@ -288,7 +288,7 @@ class DaskJobRunner(object):
                 axis=0,
                 ignore_index=True
             )
-    
+
             cost_agg_df = dask.delayed(pd.melt)(
                 cost_df,
                 id_vars=[
@@ -445,7 +445,7 @@ class DaskJobRunner(object):
                     'y': 'stopped_battery_capacity_kWh'
                 },
                 basepath=bbpath,
-                name='electrical_demand',
+                name='stopped_battery_capacity',
             )
         )
 
@@ -454,7 +454,7 @@ class DaskJobRunner(object):
                 summary_df,
                 ds,
                 si,
-                name='electrical-demand',
+                name='summary',
                 basepath=bbpath,
                 fmt='csv'
             )
