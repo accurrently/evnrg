@@ -80,7 +80,7 @@ def plot_facets(
 
     try:
 
-        g.savefig(tf.name)
+        g.savefig(tf.name, dpi=300)
 
         out = dh.upload_file(
             tf.name,
@@ -89,6 +89,8 @@ def plot_facets(
             meta=meta
         )
         return out
+    except Exception as e:
+        raise e
     finally:
         tf.close()        
 

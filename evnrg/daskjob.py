@@ -451,7 +451,7 @@ class DaskJobRunner(object):
     
         output_rows = dask.compute(*outputs)
 
-        return pd.DataFrame(output_rows)
+        return output_rows
 
 
 
