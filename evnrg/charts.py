@@ -79,7 +79,7 @@ def plot_facets(
     dh = DataHandler(si)
 
     with tempfile.TemporaryDirectory() as tdir:
-        basefile = tdir.name + '/' + uuid.uuid4().hex
+        basefile = tdir + '/' + uuid.uuid4().hex
         svgfile = basefile + '.svg'
         g.savefig(svgfile, dpi=300)
 
