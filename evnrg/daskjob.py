@@ -207,7 +207,7 @@ class DaskJobRunner(object):
                 ]
 
                 for sr, so in zip(sim_results, sim_outputs):
-                    for fmt in ('records', 'csv', '
+                    for fmt in ('records', 'csv', 'json'):
                     
                     json'):
                         outputs.append(
