@@ -91,7 +91,7 @@ def plot_facets(
     finally:
         tf.close()        
 
-    return {}}
+    return {}
 
 
 
