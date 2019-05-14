@@ -402,7 +402,7 @@ class DaskJobRunner(object):
 
         outputs.append(
             dask.delayed(plot_facets)(
-                scenario_long_agg_df,
+                scenario_long_df,
                 si,
                 facet_opts={
                     'col': 'weekend_or_holiday',
@@ -421,7 +421,7 @@ class DaskJobRunner(object):
 
         outputs.append(
             dask.delayed(plot_facets)(
-                scenario_long_agg_df,
+                scenario_long_df,
                 si,
                 facet_opts={
                     'col': 'weekend_or_holiday',
