@@ -39,7 +39,7 @@ def record_energy_info(
             # Idle
             if distance[i, j] < 0:
                 n_used += 1
-                idle_fuel += fuel[i, j]
+                idle_fuel[i] += fuel[i, j]
                 fuel_co2 += fuel[i, j] * fleet[j]['fuel_co2e']
                 if i > 0:
                     idle_battery[i] += battery[i - 1, j] - battery[i, j]

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import tempfile
+import uuid
 
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 
@@ -75,24 +76,20 @@ def plot_facets(
     g.map_dataframe(map_func, **map_opts)
     g.add_legend()
 
-    tf = tempfile.NamedTemporaryFile()
     dh = DataHandler(si)
 
-    try:
-
-        g.savefig(tf.name, dpi=300)
+    with tempfile.TemporaryDirectory() as tdir:
+        basefile = tdir.name + '/' + uuid.uuid4().hex
+        svgfile = basefile + '.svg'
+        g.savefig(svgfile, dpi=300)
 
         out = dh.upload_file(
-            tf.name,
-            basepath + '/' + name + '.png',
-            'png',
+            svgfile,
+            basepath + '/' + name + '.svg',
+            'svg',
             meta=meta
         )
-        return out
-    except Exception as e:
-        raise e
-    finally:
-        tf.close()        
+        return out      
 
     return {}
 

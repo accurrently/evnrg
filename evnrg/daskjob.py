@@ -288,9 +288,7 @@ class DaskJobRunner(object):
                 axis=0,
                 ignore_index=True
             )
-
-
-
+    
             cost_agg_df = dask.delayed(pd.melt)(
                 cost_df,
                 id_vars=[
