@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import tempfile
 
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 
@@ -16,6 +17,7 @@ def chart_demand(
 
     dh = DataHandler(si)
     p = si.gen_temp_path('png')
+    
 
     cal = calendar()
     holidays = cal.holidays(start=df.index.date.min(), end=df.index.date.max())
@@ -72,18 +74,24 @@ def plot_facets(
 
     g.map_dataframe(map_func, **map_opts)
     g.add_legend()
-    g.savefig(p)
 
-    out = dh.upload_file(
-        p,
-        basepath + '/' + name + '.png',
-        'png',
-        meta=meta
-    )
+    tf = tempfile.NamedTemporaryFile()
 
-    dh.cleanup()
+    try:
 
-    return out
+        g.savefig(tf.name)
+
+        out = dh.upload_file(
+            tf.name,
+            basepath + '/' + name + '.png',
+            'png',
+            meta=meta
+        )
+        return out
+    finally:
+        tf.close()        
+
+    return {}}
 
 
 
