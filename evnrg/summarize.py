@@ -198,9 +198,11 @@ def energy_pricing(
 
 def sum_cols(df: pd.DataFrame, sname: str):
 
-    out = pd.DataFrame(index = df.index)
-
-    out[sname] = df.apply(sum, axis=1)
+    out = pd.DataFrame(
+        index = df.index,
+        data = df.values.sum(axis=1),
+        columns = [sname]
+    )
 
     return out
 

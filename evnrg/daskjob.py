@@ -232,7 +232,7 @@ class DaskJobRunner(object):
                 demand_data.append(
                     dask.delayed(sum_cols)(
                         demand_df,
-                        trips
+                        ds.dataset_id
                     )
                 )
 
