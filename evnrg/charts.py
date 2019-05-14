@@ -70,7 +70,7 @@ def plot_facets(
         **facet_opts
     )
 
-    g.map(map_func, **map_opts)
+    g.map_dataframe(map_func, **map_opts)
     g.add_legend()
     g.savefig(p)
 
