@@ -221,9 +221,9 @@ def calc_co2e(distance: np.array, battery: np.array, elec_ci: float, fleet: np.a
     DRIVE = 1
     TOTAL = 2
 
-     for j in range(distance.shape[1]):
-         idle_co2 = 0.
-         drive_co2 = 0.
+    for j in range(distance.shape[1]):
+        idle_co2 = 0.
+        drive_co2 = 0.
         # Idle
         if distance[i, j] < 0:          
             idle_co2 += fuel[i, j] * fleet[j]['fuel_co2e']
