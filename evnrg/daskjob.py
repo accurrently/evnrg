@@ -357,8 +357,7 @@ class DaskJobRunner(object):
                 ],
                 value_vars=sc_demand_df.columns,
                 var_name='fleet',
-                value_name='demand_kW',
-                ignore_index=True
+                value_name='demand_kW'
             )
 
             outputs.append(
