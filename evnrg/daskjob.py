@@ -208,8 +208,6 @@ class DaskJobRunner(object):
 
                 for sr, so in zip(sim_results, sim_outputs):
                     for fmt in ('records', 'csv', 'json'):
-                    
-                    json'):
                         outputs.append(
                             dask.delayed(write_data)(
                                 df=sr,
