@@ -260,14 +260,9 @@ class DataHandler(object):
                 'Not found: {}'.format(local_path)
             )
         
-        out = {
-            'remote_path': remote_path,
-            'file_type': file_type,
-            'uploaded': False
-        }
+        
 
-        out = out.update(meta)
-
+        success = False
 
         for i in range(tries):
             o = self.driver.upload_object(
@@ -278,11 +273,19 @@ class DataHandler(object):
             if o:
                 if remove_on_success:
                     os.remove(local_path)
+                success = True
 
-                out['uploaded'] = True
 
         if use_cleanup:
             self.temp.append(local_path)
+        
+        out = {
+            'remote_path': remote_path,
+            'file_type': file_type,
+            'uploaded': success
+        }
+
+        out = out.update(meta)
         
         return out
 
