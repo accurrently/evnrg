@@ -190,8 +190,7 @@ class DataHandler(object):
             if os.path.isfile(fn):
                 os.remove(fn)
     
-    @classmethod
-    def write_parquet(cls, df: pd.DataFrame, p: str): #cache_dir: str):
+    def write_parquet(self, df: pd.DataFrame, p: str): #cache_dir: str):
 
         #uid = uuid.uuid4().hex
         #p = os.path.join(cache_dir, uid) + '.csv'
@@ -204,8 +203,7 @@ class DataHandler(object):
 
         return p
     
-    @classmethod
-    def write_csv(cls, df: pd.DataFrame, p: str):
+    def write_csv(self, df: pd.DataFrame, p: str):
 
         #uid = uuid.uuid4().hex
         #p = os.path.join(cache_dir, uid) + '.csv'
@@ -217,8 +215,7 @@ class DataHandler(object):
 
         return p
     
-    @classmethod
-    def write_records(cls, df: pd.DataFrame, p: str):
+    def write_records(self, df: pd.DataFrame, p: str):
 
         #uid = uuid.uuid4().hex
         #p = os.path.join(cache_dir, uid) + '.records.json'
@@ -232,8 +229,7 @@ class DataHandler(object):
 
         return p
     
-    @classmethod
-    def write_json(cls, df: pd.DataFrame, p: str):
+    def write_json(self, df: pd.DataFrame, p: str):
 
         #uid = uuid.uuid4().hex
         #p = os.path.join(cache_dir, uid) + '.records.json'
@@ -303,14 +299,14 @@ class DataHandler(object):
         # res = None
         
         w = {
-            'parquet': (DataHandler.write_parquet, 'parquet'),
-            'csv': (DataHandler.write_csv, 'csv'),
-            'records': (DataHandler.write_records, 'records.json'),
-            'json': (DataHandler.write_json, 'json')
+            'parquet': (self.write_parquet, 'parquet'),
+            'csv': (self.write_csv, 'csv'),
+            'records': (self.write_records, 'records.json'),
+            'json': (self.write_json, 'json')
         }.get(fmt)
 
         if w:
-            wf, ext = w
+            wf, ext = w[0], w[1]
             tf = tempfile.NamedTemporaryFile()
             try:
                 p = wf(df, tf.name)
@@ -324,13 +320,11 @@ class DataHandler(object):
                     meta=meta
                 )
                 return res
+            except Exception as e:
+                raise e
             finally:
                 tf.close()
-        return {
-            'remote_path': remote_base + '.failure',
-            'file_type': 'failed',
-            'uploaded': False
-        }
+        raise KeyError('Invalid write format: {}'.format(fmt))
     
     def upload_data(self, df: pd.DataFrame, obj_path: str, 
                     formats: str = 'parquet', uid: str = None,
