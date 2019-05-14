@@ -390,7 +390,7 @@ class DaskJobRunner(object):
                 'weekend_or_holiday',
                 'fleet',
                 'scenario',
-                'hour'
+                'hour24'
             ],
             value_vars=[
                 'home_demand_kW',
@@ -411,7 +411,7 @@ class DaskJobRunner(object):
                 map_func=sns.lineplot,
                 map_opts={
                     'hue': 'fleet',
-                    'x': 'hour',
+                    'x': 'hour24',
                     'y': 'home_demand_kW'
                 },
                 basepath=bbpath,
@@ -430,7 +430,7 @@ class DaskJobRunner(object):
                 map_func=sns.lineplot,
                 map_opts={
                     'hue': 'fleet',
-                    'x': 'hour',
+                    'x': 'hour24',
                     'y': 'stopped_battery_capacity_kWh'
                 },
                 basepath=bbpath,
