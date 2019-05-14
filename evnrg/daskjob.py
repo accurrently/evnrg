@@ -216,7 +216,7 @@ class DaskJobRunner(object):
                                 name=so,
                                 basepath=bpath,
                                 meta=meta,
-                                format=fmt
+                                fmt=fmt
                             )
                         )
 
