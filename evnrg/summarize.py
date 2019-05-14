@@ -220,7 +220,6 @@ def calc_co2e(distance: np.array, battery: np.array, elec_ci: float, fleet: np.a
     IDLE = 0
     DRIVE = 1
     TOTAL = 2
-    initial_battery = 
 
      for j in range(distance.shape[1]):
          idle_co2 = 0.
