@@ -178,7 +178,7 @@ def add_datetime_cols( df: pd.DataFrame ):
     holidays = cal.holidays(start=df.index.date.min(), end=df.index.date.max())
 
     df['time'] = df.index.time
-    df['hour'] = float(df.index.hour) + float(df.index.minute / 60.)
+    df['hour'] = df.apply(lambda x: x.index.time.hour + (x.index.time.minute/60.), axis=0)
     df['date'] = df.index.date
     df['weekend_or_holiday'] = df.index.to_series().apply(
         lambda x: (x.weekday() >= 5) or (x.date() in holidays)
