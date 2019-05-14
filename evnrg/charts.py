@@ -76,6 +76,7 @@ def plot_facets(
     g.add_legend()
 
     tf = tempfile.NamedTemporaryFile()
+    dh = DataHandler(si)
 
     try:
 
