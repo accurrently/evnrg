@@ -5,12 +5,15 @@ import re
 import pathlib
 from typing import NamedTuple
 import tempfile
+import random
+import time
 
 from libcloud.storage.base import Object, Container, StorageDriver
 from libcloud.storage.types import (
     Provider,
     ContainerDoesNotExistError,
-    ObjectDoesNotExistError
+    ObjectDoesNotExistError,
+    LibcloudError
 )
 from libcloud.storage.providers import get_driver, DRIVERS
 import appdirs
@@ -249,7 +252,7 @@ class DataHandler(object):
                     file_type: str,
                     remove_on_success: bool = True, 
                     use_cleanup: bool = True,
-                    tries: int = 3,
+                    tries: int = 4,
                     meta: dict = {}):
         
         if not os.path.isfile(local_path):
@@ -260,15 +263,20 @@ class DataHandler(object):
         success = False
 
         for i in range(tries):
-            o = self.driver.upload_object(
-                local_path,
-                self.container,
-                remote_path
-            )
-            if o:
-                #if remove_on_success and os.path.isfile(local_path):
-                #    os.remove(local_path)
-                success = True
+            try:
+            
+                o = self.driver.upload_object(
+                    local_path,
+                    self.container,
+                    remote_path
+                )
+                if o:
+                    #if remove_on_success and os.path.isfile(local_path):
+                    #    os.remove(local_path)
+                    success = True
+            except LibcloudError:
+                time.sleep(2**(1+i) + random.random())
+
 
 
         #if use_cleanup:
