@@ -135,8 +135,8 @@ class DataHandler(object):
             storage_info.key,
             storage_info.secret
         )
-
-        self.cache_dir = storage_info.cache_dir
+        # Make sure to use remote's cache dir
+        self.cache_dir = appdirs.user_cache_dir('evnrg')
 
         # Attempt to make the dir
         try:
@@ -271,7 +271,7 @@ class DataHandler(object):
                 remote_path
             )
             if o:
-                if remove_on_success:
+                if remove_on_success and os.path.isfile(local_path):
                     os.remove(local_path)
                 success = True
 
