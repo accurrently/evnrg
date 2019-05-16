@@ -68,6 +68,11 @@ def record_energy_info(
         total_fuel[i] = idle_fuel[i] + drive_fuel[i]
         total_battery[i] = idle_battery[i] + drive_battery[i]
 
+gwp_ = np.dtype([
+    ('gwp_total', np.float32),
+    ('gwp_fuel', np.float32),
+    ('gwp_elec', np.float32)
+])
 
 def energy_info(
     fleet_name: str,
@@ -151,6 +156,29 @@ def summarize_energy_info(
         }
     )
 
+def apply_lambda(
+    df: pd.DataFrame, 
+    input_col: str,
+    output_col: str,
+    f: callable):
+
+    df[output_col] = df[input_col].apply(f)
+
+    return df
+
+def add_id_cols(df: pd.DataFrame, fleet_id: str, scenario_id: str):
+    df['fleet'] = fleet_id
+    df['scenario'] = scenario_id
+    return df
+
+def add_time_cols(df: pd.DataFrame):
+    cal = calendar()
+    holidays = cal.holidays(start=df.index.date.min(), end=df.index.date.max())
+    df['time_of_day'] = (df.index.hour.values * 100) + df.index.minute.values
+    df['weekend_or_holiday'] = df.index.to_series().apply(
+        lambda x: (x.weekday() >= 5) or (x.date() in holidays)
+    )
+    return df
 
 def add_datetime_cols( df: pd.DataFrame ):
     cal = calendar()
@@ -257,7 +285,6 @@ def make_co2e_df(distance_df: pd.DataFrame, battery_df: pd.DataFrame, elec_ci, f
     )
 
     return out
-
 
 
 

@@ -371,7 +371,20 @@ def try_defer_trips(
 
 
 @nb.njit(cache=True)
-def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_interval):
+def drive(
+    distance,
+    batt_state,
+    battery,
+    fuel,
+    fleet,
+    idle_load_kw,
+    min_per_interval
+    drive_batt_used,
+    drive_fuel_used,
+    idle_batt_used,
+    idle_fuel_used,
+    idle_fuel_gwp,
+    drive_fuel_gwp):
 
 
     for vid in range(fleet.shape[0]):
@@ -379,6 +392,7 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
         ev_eff = fleet[vid]['ev_eff']
         ice_eff = fleet[vid]['ice_eff']
         ice_g_kwh = fleet[vid]['ice_gal_kwh']
+        fuel_gwp = fleet[vid]['fuel_co2e']
         batt = batt_state[vid]
 
         batt_used = 0.
@@ -392,11 +406,14 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
             if ev_eff > 0:
                 nrg_req = d / ev_eff
                 batt_used = min(batt, nrg_req)
+                drive_batt_used += batt_used
                 d = d - max((batt_used * ev_eff), d)
             
             # Handle ICE                
             if  ice_eff > 0.:
                 fuel_used = d / ice_eff
+                drive_fuel_used += fuel_used
+                drive_fuel_gwp += fuel_used * fuel_gwp
         # idling
         elif distance[vid] < 0.:
             e = idle_load_kw * (min_per_interval / 60.)
@@ -404,9 +421,12 @@ def drive(distance, batt_state, battery, fuel, fleet, idle_load_kw, min_per_inte
             if ev_eff > 0.:
                 batt_used = min(batt, e)
                 e = e - max(e, batt_used)
+                idle_batt_used += batt_used
             # Handle ICE
             if  ice_g_kwh > 0.:
                 fuel_used = e * ice_g_kwh
+                idle_fuel_used += fuel_used
+                idle_fuel_gwp += fuel_used * fuel_gwp
         
         # Only set values if we actually drove        
         battery[vid] = batt - batt_used    
@@ -482,7 +502,12 @@ def simulation_loop_delayed(
     deferred = np.zeros(dshape, dtype=np.float32)
     queue_length = np.zeros(nrows, dtype=np.int64)
     connected_home_evse = np.full((nrows, nvehicles), -1, dtype=np.int64)
-
+    drive_batt_used = np.zeros(nrows, dtype=np.float32)
+    drive_fuel_used = np.zeros(nrows, dtype=np.float32)
+    idle_batt_used = np.zeros(nrows, dtype=np.float32)
+    idle_fuel_used = np.zeros(nrows, dtype=np.float32)
+    idle_fuel_gwp = np.zeros(nrows, dtype=np.float32)
+    drive_fuel_gwp = np.zeros(nrows, dtype=np.float32)
     queue = np.full(nvehicles, np.nan, dtype=np.float32)
 
     for idx in range(nrows):
@@ -548,7 +573,20 @@ def simulation_loop_delayed(
             bs = battery_state[idx - 1,:]
 
         # Drive
-        drive(distance[idx], bs, battery_state[idx,:], fuel_use[idx,:], fleet, idle_load_kw, interval_min)
+        drive(
+            distance[idx],
+            bs,
+            battery_state[idx,:],
+            fuel_use[idx,:],
+            fleet,
+            idle_load_kw,
+            interval_min,
+            drive_batt_used[idx],
+            drive_fuel_used[idx],
+            idle_batt_used[idx],
+            idle_fuel_used[idx],
+            idle_fuel_gwp[idx],
+            drive_fuel_gwp[idx])
         
         # Process queue
         connect_from_queue(queue, fleet, bs, home_bank)
@@ -643,12 +681,18 @@ def simulation_loop_delayed(
             index=trips.index
         ),
 
-        # EVSE Use
+        # Summary
         pd.DataFrame(
             data={
                 'evse_utilization': utilization,
                 'evse_occupancy': occupancy,
-                'queue_length': queue_length
+                'queue_length': queue_length,
+                'idle_batt_used': idle_batt_used,
+                'idle_fuel_used': idle_fuel_used,
+                'drive_batt_used': drive_batt_used,
+                'drive_fuel_used': drive_fuel_used,
+                'idle_fuel_gwp': idle_fuel_gwp
+                'drive_fuel_gwp': drive_fuel_gwp
             },
             index=trips.index
         ),

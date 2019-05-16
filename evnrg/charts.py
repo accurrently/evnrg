@@ -57,6 +57,73 @@ def chart_demand(
 
     return out
 
+def upload_chart(
+    fig,
+    si: StorageInfo,
+    basepath: str,
+    name: str,
+    ext: str = 'svg'):
+
+    dh = DataHandler(si)
+
+    with tempfile.TemporaryDirectory() as tdir:
+        basefile = tdir + '/' + uuid.uuid4().hex
+        imgfile = basefile + '.' + ext
+        fig.savefig(imgfile, dpi=300)
+
+        out = dh.upload_file(
+            imgfile,
+            basepath + '/' + name + '.' + ext,
+            ext,
+            meta=meta
+        )
+        return out
+
+    return {}
+
+
+
+def plot_demand(df: pd.DataFrame, si: StorageInfo, basepath: str):
+
+    sns.set(style='ticks')
+    g = sns.relplot(
+        x='time_of_day',
+        y='demand',
+        hue='fleet',
+        col='weekend_or_holiday',
+        row='scenario',
+        kind='line',
+        data=df
+    )
+
+    return upload_chart(
+        fig=g,
+        si=si,
+        basepath=basepath,
+        name='demand'
+    )
+
+def plot_bar(df: pd.DataFrame, si: StorageInfo, 
+    basepath: str, y: str, x: str, col: str, name: str, wrap: int=4):
+    
+    g = sns.catplot(
+        col=col,
+        x=x,
+        y=y,
+        kind='bar',
+        data=df,
+        col_wrap=wrap
+    )
+
+    return upload_chart(
+        fig=g,
+        si=si,
+        basepath=basepath,
+        name=name
+    )
+
+
+
 def plot_facets(
     df: pd.DataFrame,
     si: StorageInfo,
