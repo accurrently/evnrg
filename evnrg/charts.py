@@ -74,8 +74,7 @@ def upload_chart(
         out = dh.upload_file(
             imgfile,
             basepath + '/' + name + '.' + ext,
-            ext,
-            meta=meta
+            ext
         )
         return out
 
