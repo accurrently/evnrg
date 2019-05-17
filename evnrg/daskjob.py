@@ -398,7 +398,7 @@ class DaskJobRunner(object):
 
         outputs.append(
             dask.delayed(plot_bar)(
-                summary_df,
+                summary_sum_agg_df,
                 si,
                 basepath=bbpath,
                 y='total_ghg_kgCO2',
@@ -410,7 +410,7 @@ class DaskJobRunner(object):
 
         outputs.append(
             dask.delayed(plot_bar)(
-                summary_df,
+                summary_sum_agg_df,
                 si,
                 basepath=bbpath,
                 y='idle_ghg_kgCO2',
@@ -422,7 +422,7 @@ class DaskJobRunner(object):
 
         outputs.append(
             dask.delayed(write_data)(
-                summary_df,
+                summary_sum_agg_df,
                 ds,
                 si,
                 basepath=bbpath,

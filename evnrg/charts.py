@@ -95,6 +95,8 @@ def plot_demand(df: pd.DataFrame, si: StorageInfo, basepath: str):
         data=df
     )
 
+    g.set_xticklabels(rotation=30)
+
     return upload_chart(
         fig=g,
         si=si,
@@ -113,6 +115,8 @@ def plot_bar(df: pd.DataFrame, si: StorageInfo,
         data=df,
         col_wrap=wrap
     )
+
+    g.set_xticklabels(rotation=30)
 
     return upload_chart(
         fig=g,
