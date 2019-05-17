@@ -691,7 +691,7 @@ def simulation_loop_delayed(
                 'idle_fuel_used': idle_fuel_used,
                 'drive_batt_used': drive_batt_used,
                 'drive_fuel_used': drive_fuel_used,
-                'idle_fuel_gwp': idle_fuel_gwp
+                'idle_fuel_gwp': idle_fuel_gwp,
                 'drive_fuel_gwp': drive_fuel_gwp
             },
             index=trips.index
