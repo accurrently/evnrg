@@ -297,20 +297,25 @@ class DaskJobRunner(object):
                 summary_means = dask.delayed(summary_means.append)(siminfo)
                 summary_mean_data.append(summary_means)
 
-                demand_df = dask.delayed(add_id_cols)(
+                demand_summed_df = dask.delayed(sum_cols)(
                     demand_df,
+                    'demand'
+                )
+
+                demand_summed_df = dask.delayed(add_id_cols)(
+                    demand_summed_df,
                     fid,
                     sid
                 )
 
-                demand_df = dask.delayed(add_time_cols)(demand_df)
-                demand_df = dask.delayed(demand_df.reset_index)(drop=True)
+                demand_summed_df = dask.delayed(add_time_cols)(demand_summed_df)
+                demand_summed_df = dask.delayed(demand_summed_df.reset_index)(drop=True)
 
                 demand_data.append(
-                    demand_df
+                    demand_summed_df
                 )
 
-                sc_demand_data.append(demand_df)
+                sc_demand_data.append(demand_summed_df)
                 
 
                 defer_totals = dask.delayed(defer_df.apply)(sum, axis=1)
