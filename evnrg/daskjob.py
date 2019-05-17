@@ -389,8 +389,6 @@ class DaskJobRunner(object):
             scenario_short
         )
 
-        
-
         outputs.append(
             dask.delayed(plot_bar)(
                 summary_df,
@@ -425,9 +423,7 @@ class DaskJobRunner(object):
                 fmt='csv'
             )
         )            
-            
-        
-    
+
         output_rows = dask.compute(*outputs)
 
         return output_rows

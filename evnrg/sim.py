@@ -378,7 +378,7 @@ def drive(
     fuel,
     fleet,
     idle_load_kw,
-    min_per_interval
+    min_per_interval,
     drive_batt_used,
     drive_fuel_used,
     idle_batt_used,
