@@ -253,33 +253,7 @@ class DaskJobRunner(object):
                             )
                         )
                 
-                siminfo = pd.Series({
-                    'fleet': fid,
-                    'scenario': sid
-                })
-
-                summary_sums = dask.delayed(summary_df.sum)(axis=0)
-                summary_sums = dask.delayed(summary_sums.append)(siminfo)
-                summary_sum_data.append(summary_sums)
-
-                summary_means = dask.delayed(summary_df.mean)(axis=0)
-                summary_means = dask.delayed(summary_means.append)(siminfo)
-                summary_mean_data.append(summary_means)
-
-                demand_df = dask.delayed(add_id_cols)(
-                    demand_df,
-                    fid,
-                    sid
-                )
-
-                demand_df = dask.delayed(add_time_cols)(demand_df)
-                demand_df = dask.delayed(demand_df.reset_index)(drop=True)
-
-                demand_data.append(
-                    demand_df
-                )
-
-                sc_demand_data.append(demand_df)
+                
 
                 nrg_nfo_df = dask.delayed(energy_info)(
                     fid,
@@ -309,6 +283,34 @@ class DaskJobRunner(object):
                             fmt=fmt
                         )
                     )
+                
+                siminfo = pd.Series({
+                    'fleet': fid,
+                    'scenario': sid
+                })
+
+                summary_sums = dask.delayed(summary_df.sum)(axis=0)
+                summary_sums = dask.delayed(summary_sums.append)(siminfo)
+                summary_sum_data.append(summary_sums)
+
+                summary_means = dask.delayed(summary_df.mean)(axis=0)
+                summary_means = dask.delayed(summary_means.append)(siminfo)
+                summary_mean_data.append(summary_means)
+
+                demand_df = dask.delayed(add_id_cols)(
+                    demand_df,
+                    fid,
+                    sid
+                )
+
+                demand_df = dask.delayed(add_time_cols)(demand_df)
+                demand_df = dask.delayed(demand_df.reset_index)(drop=True)
+
+                demand_data.append(
+                    demand_df
+                )
+
+                sc_demand_data.append(demand_df)
                 
 
                 defer_totals = dask.delayed(defer_df.apply)(sum, axis=1)
