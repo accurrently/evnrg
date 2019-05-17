@@ -45,7 +45,8 @@ from .summarize import (
     make_co2e_df,
     add_time_cols,
     apply_lambda,
-    add_id_cols
+    add_id_cols,
+    calc_summary
 )
 from .charts import (
     chart_demand,
@@ -394,6 +395,10 @@ class DaskJobRunner(object):
 
         summary_df = dask.delayed(pd.DataFrame)(
             scenario_short
+        )
+
+        summary_sum_agg_df = dask.delayed(calc_summary)(
+            summary_sum_agg_df
         )
 
         outputs.append(
