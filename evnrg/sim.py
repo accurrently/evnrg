@@ -372,6 +372,7 @@ def try_defer_trips(
 
 @nb.njit(cache=True)
 def drive(
+    idx,
     distance,
     batt_state,
     battery,
@@ -406,14 +407,14 @@ def drive(
             if ev_eff > 0:
                 nrg_req = d / ev_eff
                 batt_used = min(batt, nrg_req)
-                drive_batt_used += batt_used
+                drive_batt_used[idx] += batt_used
                 d = d - max((batt_used * ev_eff), d)
             
             # Handle ICE                
             if  ice_eff > 0.:
                 fuel_used = d / ice_eff
-                drive_fuel_used += fuel_used
-                drive_fuel_gwp += fuel_used * fuel_gwp
+                drive_fuel_used[idx] += fuel_used
+                drive_fuel_gwp[idx] += fuel_used * fuel_gwp
         # idling
         elif distance[vid] < 0.:
             e = idle_load_kw * (min_per_interval / 60.)
@@ -421,12 +422,12 @@ def drive(
             if ev_eff > 0.:
                 batt_used = min(batt, e)
                 e = e - max(e, batt_used)
-                idle_batt_used += batt_used
+                idle_batt_used[idx] += batt_used
             # Handle ICE
             if  ice_g_kwh > 0.:
                 fuel_used = e * ice_g_kwh
-                idle_fuel_used += fuel_used
-                idle_fuel_gwp += fuel_used * fuel_gwp
+                idle_fuel_used[idx] += fuel_used
+                idle_fuel_gwp[idx] += fuel_used * fuel_gwp
         
         # Only set values if we actually drove        
         battery[vid] = batt - batt_used    
@@ -574,6 +575,7 @@ def simulation_loop_delayed(
 
         # Drive
         drive(
+            idx,
             distance[idx],
             bs,
             battery_state[idx,:],
@@ -581,12 +583,12 @@ def simulation_loop_delayed(
             fleet,
             idle_load_kw,
             interval_min,
-            drive_batt_used[idx],
-            drive_fuel_used[idx],
-            idle_batt_used[idx],
-            idle_fuel_used[idx],
-            idle_fuel_gwp[idx],
-            drive_fuel_gwp[idx])
+            drive_batt_used,
+            drive_fuel_used,
+            idle_batt_used,
+            idle_fuel_used,
+            idle_fuel_gwp,
+            drive_fuel_gwp)
         
         # Process queue
         connect_from_queue(queue, fleet, bs, home_bank)

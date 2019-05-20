@@ -285,18 +285,14 @@ class DaskJobRunner(object):
                         )
                     )
                 
-                siminfo = pd.Series({
+                siminfo = {
                     'fleet': fid,
                     'scenario': sid
-                })
+                }
 
-                summary_sums = dask.delayed(summary_df.sum)(axis=0)
-                summary_sums = dask.delayed(summary_sums.append)(siminfo)
+                summary_sums = dask.delayed(summarize_summary)(summary_df)
+                summary_sums = dask.delayed(summary_sums.update)(siminfo)
                 summary_sum_data.append(summary_sums)
-
-                summary_means = dask.delayed(summary_df.mean)(axis=0)
-                summary_means = dask.delayed(summary_means.append)(siminfo)
-                summary_mean_data.append(summary_means)
 
                 demand_summed_df = dask.delayed(sum_cols)(
                     demand_df,

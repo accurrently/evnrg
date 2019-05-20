@@ -156,6 +156,19 @@ def summarize_energy_info(
         }
     )
 
+def summarize_summary(df: pd.DataFrame):
+    return {
+        'mean_evse_utilization': df['evse_utilization'].mean(),
+        'mean_evse_occupancy': df['evse_occupancy'].mean(),
+        'mean_queue_length': df['queue_length'].mean(),
+        'idle_batt_used': df['idle_batt_used'].sum(),
+        'idle_fuel_used': df['idle_fuel_used'].sum(),
+        'drive_batt_used': df['drive_batt_used'].sum(),
+        'drive_fuel_used': df['drive_fuel_used'].sum(),
+        'idle_fuel_gwp': df['idle_fuel_gwp'].sum(),
+        'drive_fuel_gwp': df['drive_fuel_gwp'].sum()
+    }
+
 def apply_lambda(
     df: pd.DataFrame, 
     input_col: str,
@@ -198,7 +211,7 @@ def add_datetime_cols( df: pd.DataFrame ):
 def calc_summary(df: pd.DataFrame):
     df['total_ghg_kgCO2'] = df['idle_fuel_gwp'] + df['drive_fuel_gwp'] + df['idle_batt_gwp'] + df['drive_batt_gwp']
     df['idle_ghg_kgCO2'] = df['idle_fuel_gwp'] + df['idle_batt_gwp']
-    df['dive_ghg_kgCO2'] = df['drive_fuel_gwp'] + df['drive_batt_gwp']
+    df['drive_ghg_kgCO2'] = df['drive_fuel_gwp'] + df['drive_batt_gwp']
     return df
 
 def energy_pricing(
