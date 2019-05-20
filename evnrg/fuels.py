@@ -41,11 +41,11 @@ class Fuel(NamedTuple):
     
     @property
     def MJ_gal(self):
-        return self.MJ_L * _GAL_PER_L
+        return self.MJ_L / _GAL_PER_L
     
     @property
     def kWh_gal(self):
-        return (self.MJ_L * _GAL_PER_L) / _KWH_PER_MJ
+        return (self.MJ_L / _GAL_PER_L) * _KWH_PER_MJ
     
     @property
     def kWh_L(self):
