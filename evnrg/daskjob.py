@@ -375,7 +375,8 @@ class DaskJobRunner(object):
         )
 
         summary_sum_agg_df = dask.delayed(calc_summary)(
-            summary_sum_agg_df
+            summary_sum_agg_df,
+            CA_MARGINAL_ELEC_CO2
         )
 
         demand_full_df = dask.delayed(pd.concat)(

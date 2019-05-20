@@ -210,7 +210,9 @@ def add_datetime_cols( df: pd.DataFrame ):
     
     return df
 
-def calc_summary(df: pd.DataFrame):
+def calc_summary(df: pd.DataFrame, grid_ci: float):
+    df['idle_batt_gwp'] = df['idle_batt_used'] * grid_ci
+    df['drive_batt_gwp'] = df['drive_batt_used'] * grid_ci
     df['total_ghg_kgCO2'] = df['idle_fuel_gwp'] + df['drive_fuel_gwp'] + df['idle_batt_gwp'] + df['drive_batt_gwp']
     df['idle_ghg_kgCO2'] = df['idle_fuel_gwp'] + df['idle_batt_gwp']
     df['drive_ghg_kgCO2'] = df['drive_fuel_gwp'] + df['drive_batt_gwp']
