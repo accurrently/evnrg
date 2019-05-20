@@ -106,14 +106,16 @@ def plot_demand(df: pd.DataFrame, si: StorageInfo, basepath: str):
 
 def plot_bar(df: pd.DataFrame, si: StorageInfo, 
     basepath: str, y: str, x: str, col: str, name: str, wrap: int=4):
-    
+    sns.set(style="ticks")
     g = sns.catplot(
         col=col,
         x=x,
         y=y,
         kind='bar',
         data=df,
-        col_wrap=wrap
+        col_wrap=wrap,
+        margin_titles=True,
+        legend_out=True
     )
 
     g.set_xticklabels(rotation=30)
