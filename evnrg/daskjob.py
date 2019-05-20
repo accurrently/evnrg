@@ -46,7 +46,8 @@ from .summarize import (
     add_time_cols,
     apply_lambda,
     add_id_cols,
-    calc_summary
+    calc_summary,
+    summarize_summary
 )
 from .charts import (
     chart_demand,
