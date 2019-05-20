@@ -156,7 +156,7 @@ def summarize_energy_info(
         }
     )
 
-def summarize_summary(df: pd.DataFrame):
+def summarize_summary(df: pd.DataFrame, fid, sid):
     return {
         'mean_evse_utilization': df['evse_utilization'].mean(),
         'mean_evse_occupancy': df['evse_occupancy'].mean(),
@@ -166,7 +166,9 @@ def summarize_summary(df: pd.DataFrame):
         'drive_batt_used': df['drive_batt_used'].sum(),
         'drive_fuel_used': df['drive_fuel_used'].sum(),
         'idle_fuel_gwp': df['idle_fuel_gwp'].sum(),
-        'drive_fuel_gwp': df['drive_fuel_gwp'].sum()
+        'drive_fuel_gwp': df['drive_fuel_gwp'].sum(),
+        'fleet': fid,
+        'scenario': sid
     }
 
 def apply_lambda(

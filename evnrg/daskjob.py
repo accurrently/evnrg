@@ -291,8 +291,11 @@ class DaskJobRunner(object):
                     'scenario': sid
                 }
 
-                summary_sums = dask.delayed(summarize_summary)(summary_df)
-                summary_sums = dask.delayed(summary_sums.update)(siminfo)
+                summary_sums = dask.delayed(summarize_summary)(
+                    summary_df,
+                    fid,
+                    sid
+                )
                 summary_sum_data.append(summary_sums)
 
                 demand_summed_df = dask.delayed(sum_cols)(
@@ -367,17 +370,17 @@ class DaskJobRunner(object):
             )            
             # End Scenario loop
 
-        summary_means_agg_df = dask.delayed(pd.DataFrame)(
-            summary_mean_data
+        summary_sum_agg_df = dask.delayed(pd.DataFrame.from_records)(
+            summary_sum_data
         )
 
-        summary_sum_agg_df = dask.delayed(pd.DataFrame)(
-            summary_sum_data
+        summary_sum_agg_df = dask.delayed(calc_summary)(
+            summary_sum_agg_df
         )
 
         demand_full_df = dask.delayed(pd.concat)(
             demand_data,
-
+            axis=0
         )
 
         outputs.append(
@@ -394,9 +397,7 @@ class DaskJobRunner(object):
             scenario_short
         )
 
-        summary_sum_agg_df = dask.delayed(calc_summary)(
-            summary_sum_agg_df
-        )
+        
 
         outputs.append(
             dask.delayed(plot_bar)(
