@@ -312,6 +312,14 @@ class DaskJobRunner(object):
                 demand_summed_df = dask.delayed(add_time_cols)(demand_summed_df)
                 demand_summed_df = dask.delayed(demand_summed_df.reset_index)(drop=True)
 
+                outputs.append(
+                    dask.delayed(plot_demand)(
+                        demand_summed_df,
+                        si=si,
+                        basepath=bpath
+                    )
+                )
+
                 demand_data.append(
                     demand_summed_df
                 )

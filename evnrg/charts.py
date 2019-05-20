@@ -92,7 +92,11 @@ def plot_demand(df: pd.DataFrame, si: StorageInfo, basepath: str):
         col='weekend_or_holiday',
         row='scenario',
         kind='line',
-        data=df
+        data=df,
+        facet_kws=dict(
+            legend_out=True,
+            margin_titles=True
+        )
     )
 
     g.set_xticklabels(rotation=30)
