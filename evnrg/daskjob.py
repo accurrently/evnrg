@@ -176,17 +176,10 @@ class DaskJobRunner(object):
         for sc in scenarios:
             sc: Scenario
 
-            scenario_long = []
-            #scenario_long = dask.delayed(scenario_long)
-
-            scenario_short = []
-            #scenario_short = dask.delayed(scenario_short)
-
             fleets_deferred = []
 
             sc_demand_data = []
 
-            #sc = dask.delayed(scenario)
             idle_load = sc.idle_load_kw
             sid = sc.run_id
 
@@ -360,29 +353,12 @@ class DaskJobRunner(object):
                 defer_totals = dask.delayed(defer_df.apply)(sum, axis=1)
                 defer_totals = dask.delayed(defer_totals.rename)('deferred')
 
-                #fleets_deferred.append(
-                #    defer_totals
-                #)
-
-                scenario_long.append(nrg_nfo_df)
-                scenario_long.append(defer_totals)
-                scenario_long.append(summary_df)
-
                 nrg_summary = dask.delayed(summarize_energy_info)(
                     df=nrg_nfo_df,
                     fname=fid,
                     scname=sid
                 )
 
-                scenario_short.append(nrg_summary)
-
-                price_data.append(
-                    dask.delayed(energy_pricing)(
-                        nrg_summary,
-                        dask.delayed(np.arange(0.10, 0.16, .02)),
-                        dask.delayed(np.arange(2.5, 5, .05))
-                    )
-                )
                 # End Fleet loop
             
             smeta = dask.delayed(dict)(
@@ -417,7 +393,7 @@ class DaskJobRunner(object):
             energy_cost_data
         )
 
-        # PLot idle costs
+        # Plot idle costs
         outputs.append(
             dask.delayed(plot_line)(
                 df=idle_cost_df,
@@ -448,8 +424,6 @@ class DaskJobRunner(object):
             )
         )
 
-
-
         # Do Calc CO2
         summary_sum_agg_df = dask.delayed(pd.DataFrame.from_records)(
             summary_sum_data
@@ -462,8 +436,8 @@ class DaskJobRunner(object):
 
         outputs.append(
             dask.delayed(plot_bar)(
-                summary_sum_agg_df,
-                si,
+                df=summary_sum_agg_df,
+                si=si,
                 basepath=bbpath,
                 y='total_ghg_kgCO2',
                 x='fleet',
@@ -474,8 +448,8 @@ class DaskJobRunner(object):
 
         outputs.append(
             dask.delayed(plot_bar)(
-                summary_sum_agg_df,
-                si,
+                df=summary_sum_agg_df,
+                si=si,
                 basepath=bbpath,
                 y='idle_ghg_kgCO2',
                 x='fleet',
@@ -485,9 +459,6 @@ class DaskJobRunner(object):
         )
 
         # Summary
-        summary_df = dask.delayed(pd.DataFrame)(
-            scenario_short
-        )
 
         outputs.append(
             dask.delayed(write_data)(
@@ -503,14 +474,22 @@ class DaskJobRunner(object):
         # Demand
         demand_full_df = dask.delayed(pd.concat)(
             demand_data,
-            axis=0
+            axis=0,
+            ignore_index=True
         )
 
         outputs.append(
-            dask.delayed(plot_demand)(
-                demand_full_df,
-                si,
-                bbpath
+            dask.delayed(plot_line)(
+                df=demand_full_df,
+                si=si,
+                basepath=bbpath,
+                y='demand',
+                col='weekend_or_holiday',
+                wrap=None,
+                row='fleet',
+                hue='scenario',
+                x='time_of_day',
+                name='demand'
             )
         )         
 
