@@ -99,7 +99,7 @@ def plot_demand(df: pd.DataFrame, si: StorageInfo, basepath: str):
         )
     )
 
-    g.set_xticklabels(rotation=30)
+    g.set_xticklabels(df['time_of_day'], rotation=30, ha="center")
 
     return upload_chart(
         fig=g,
@@ -109,10 +109,11 @@ def plot_demand(df: pd.DataFrame, si: StorageInfo, basepath: str):
     )
 
 def plot_bar(df: pd.DataFrame, si: StorageInfo, 
-    basepath: str, y: str, x: str, col: str, name: str, wrap: int=4):
+    basepath: str, y: str, x: str, col: str, name: str, wrap: int=4, row=None):
     sns.set(style="ticks")
     g = sns.catplot(
         col=col,
+        row=row,
         x=x,
         y=y,
         kind='bar',
@@ -122,7 +123,7 @@ def plot_bar(df: pd.DataFrame, si: StorageInfo,
         legend_out=True
     )
 
-    g.set_xticklabels(rotation=30)
+    g.set_xticklabels(df[x], rotation=30, ha="center")
 
     return upload_chart(
         fig=g,
