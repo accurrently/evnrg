@@ -218,6 +218,43 @@ def calc_summary(df: pd.DataFrame, grid_ci: float):
     df['drive_ghg_kgCO2'] = df['drive_fuel_gwp'] + df['drive_batt_gwp']
     return df
 
+        
+
+def energy_cost(
+    fuel_df: pd.DataFrame,
+    energy_df: pd.DataFrame,
+    fid: str,
+    sid: str,
+    fuel_price: float,
+    elec_price: float):
+    total_fuel = fuel_df.values.sum()
+    total_elec = energy_df.values.sum()
+    return {
+        'fleet': fid,
+        'scenario': sid,
+        'fuel_price': fuel_price,
+        'elec_price': elec_price,
+        'fuel_cost': fuel_price * total_fuel,
+        'elec_cost': elec_price * total_elec,
+        'total_cost': (fuel_price * total_fuel) + (elec_price * total_elec)
+    }
+
+def idle_cost(
+    summary_df: pd.DataFrame,
+    fid: str,
+    sid: str,
+    fuel_price: float,
+    elec_price: float):
+    return energy_cost(
+        summary_df[['idle_fuel_used']],
+        summary_df[['idle_batt_used']],
+        fid,
+        sid,
+        fuel_price,
+        elec_price
+    )
+
+
 def energy_pricing(
     s: pd.Series,
     e_prices: list,

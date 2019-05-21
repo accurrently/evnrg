@@ -108,6 +108,37 @@ def plot_demand(df: pd.DataFrame, si: StorageInfo, basepath: str):
         name='demand'
     )
 
+def plot_line(df: pd.DataFrame, si: StorageInfo, basepath: str,
+    y: str, x: str, col: str, name: str, wrap: int=4, row=None, hue=None):
+
+    sns.set(style='ticks')
+
+    g = sns.relplot(
+        x=x,
+        y=y,
+        hue=hue,
+        col=col,
+        col_wrap=wrap,
+        row=row,
+        kind='line',
+        data=df,
+        facet_kws=dict(
+            legend_out=True,
+            margin_titles=True
+        )
+    )
+
+    g.set_xticklabels(df[x], rotation=30, ha="center")
+
+    return upload_chart(
+        fig=g,
+        si=si,
+        basepath=basepath,
+        name=name
+    )
+
+
+
 def plot_bar(df: pd.DataFrame, si: StorageInfo, 
     basepath: str, y: str, x: str, col: str, name: str, wrap: int=4, row=None):
     sns.set(style="ticks")
