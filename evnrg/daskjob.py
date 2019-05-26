@@ -211,7 +211,7 @@ class DaskJobRunner(object):
                 defer_df = sim_result.deferred
                 demand_df = sim_result.demand
                 nrg_df = sim_result.energy
-                summary_df = sim_result.evse_info
+                summary_df = sim_result.summary_info
                 fleet = sim_result.fleet
                 home_bank = sim_result.home_bank
                 trips = sim_result.trips
@@ -403,9 +403,9 @@ class DaskJobRunner(object):
                 x='fuel_price',
                 wrap=None,
                 col='fleet',
-                row='elec_price',
+                row='scenario',
                 name='idle_energy_costs',
-                hue='scenario'
+                hue='elec_price'
             )
         )
 
@@ -418,9 +418,9 @@ class DaskJobRunner(object):
                 x='fuel_price',
                 wrap=None,
                 col='fleet',
-                row='elec_price',
+                row='scenario',
                 name='energy_costs',
-                hue='scenario'
+                hue='elec_price'
             )
         )
 
@@ -459,7 +459,6 @@ class DaskJobRunner(object):
         )
 
         # Summary
-
         outputs.append(
             dask.delayed(write_data)(
                 summary_sum_agg_df,

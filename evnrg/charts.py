@@ -112,6 +112,7 @@ def plot_line(df: pd.DataFrame, si: StorageInfo, basepath: str,
     y: str, x: str, col: str, name: str, wrap: int=4, row=None, hue=None):
 
     sns.set(style='ticks')
+    sns.plt.xlim(df[x].min(), df[x].max())
 
     g = sns.relplot(
         x=x,
@@ -128,6 +129,7 @@ def plot_line(df: pd.DataFrame, si: StorageInfo, basepath: str,
         )
     )
 
+    
     g.set_xticklabels(df[x], rotation=30, ha="center")
 
     return upload_chart(

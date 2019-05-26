@@ -53,7 +53,7 @@ class Fuel(NamedTuple):
     
     @property
     def kgCO2_gal(self):
-        return ((self.ci * self.MJ_L) * _GAL_PER_L) / 1000.0
+        return ((self.ci * self.MJ_L) / _GAL_PER_L) / 1000.0
     
     @property
     def kgCO2_L(self):

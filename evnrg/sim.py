@@ -464,6 +464,47 @@ def evse_usage(fleet, bank, min_per_interval):
     
     return out
 
+@nb.njit(cache=True)
+def drive_usage(fleet, distance, battery_state):
+
+    nvics = max(fleet.shape[0], 1)
+
+    nstopped = 0.
+    ndriving = 0.
+    ncharging = 0.
+    nidle = 0.
+    stopped_battery = 0.
+    total_battery = 0.
+
+    
+    for i in range(nvics):
+        total_battery += battery_state[i]
+        if fleet[i]['home_evse_id'] >= 0:
+            ncharging += 1
+        if distance[i] < 0:
+            nidle += 1
+        elif distance[i] > 0:
+            ndriving += 1
+        elif distance[i] == 0:
+            nstopped +=1
+            stopped_battery += battery_state[i]
+    
+    pct_driving = ndriving / nvics
+    pct_idle = nidle / nvics
+    pct_stopped = nstopped / nvics
+    pct_charging = ncharging / nvics
+    pct_batt_available = stopped_battery / total_battery
+       
+
+    return (
+        pct_driving,
+        pct_idle,
+        pct_stopped,
+        pct_charging,
+        stopped_battery,
+        pct_batt_available
+    )
+
 #@nb.njit(cache=True)
 def simulation_loop_delayed(
     trips: pd.DataFrame,
@@ -509,6 +550,14 @@ def simulation_loop_delayed(
     idle_fuel_used = np.zeros(nrows, dtype=np.float32)
     idle_fuel_gwp = np.zeros(nrows, dtype=np.float32)
     drive_fuel_gwp = np.zeros(nrows, dtype=np.float32)
+
+    pct_driving = np.zeros(nrows, dtype=np.float32)
+    pct_idle = np.zeros(nrows, dtype=np.float32)
+    pct_stopped = np.zeros(nrows, dtype=np.float32),
+    pct_charging = np.zeros(nrows, dtype=np.float32)
+    stopped_battery = np.zeros(nrows, dtype=np.float32)
+    pct_batt_available = np.zeros(nrows, dtype=np.float32)
+
     queue = np.full(nvehicles, np.nan, dtype=np.float32)
 
     for idx in range(nrows):
@@ -622,6 +671,17 @@ def simulation_loop_delayed(
             elec_energy[idx] = 0
             occupancy[idx] = 0
             utilization[idx] = 0
+        
+        pct_dr, pct_id, pct_st, \
+        pct_ch, stp_bat, \
+        pct_batt_avail = drive_usage(fleet, distance[idx,:], battery_state[idx,:])
+
+        pct_driving[idx] = pct_dr
+        pct_idle[idx] = pct_id
+        pct_stopped[idx] = pct_st
+        pct_charging[idx] = pct_ch
+        stopped_battery[idx] = stp_bat
+        pct_batt_available[idx] = pct_batt_avail
 
     
     home_bank_names = []
@@ -694,7 +754,14 @@ def simulation_loop_delayed(
                 'drive_batt_used': drive_batt_used,
                 'drive_fuel_used': drive_fuel_used,
                 'idle_fuel_gwp': idle_fuel_gwp,
-                'drive_fuel_gwp': drive_fuel_gwp
+                'drive_fuel_gwp': drive_fuel_gwp,
+
+                'fleet_drive_pct': pct_driving,
+                'fleet_idle_pct': pct_idle,
+                'fleet_stopped_pct': pct_stopped.
+                'fleet_charging_pct': pct_charging,
+                'fleet_stopped_battery_capacity': stopped_battery,
+                'fleet_stopped_battery_pct': pct_batt_available
             },
             index=trips.index
         ),
@@ -710,7 +777,7 @@ class SimResult(NamedTuple):
     deferred: pd.DataFrame
     demand: pd.DataFrame
     energy: pd.DataFrame
-    evse_info: pd.DataFrame
+    summary_info: pd.DataFrame
     fleet: np.array
     home_bank: np.array
     trips: pd.DataFrame
