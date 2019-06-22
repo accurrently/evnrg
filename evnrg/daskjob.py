@@ -181,9 +181,9 @@ class DaskJobRunner(object):
             sc_demand_data = []
 
             idle_load = sc.idle_load_kw
-            sid = sc.run_id
+            sid = sc.name
 
-            bpath = bbpath + sc.run_id
+            bpath = bbpath + sc.name
 
             for ds in datasets:
                 ds: DatasetInfo

@@ -99,3 +99,4 @@ DieselULS_BD20 = Fuel.from_mix(
 # https://www.arb.ca.gov/fuels/lcfs/fuelpathways/comments/tier2/elec_update.pdf
 # TODO: Use that table's temporally-determined values instead of average
 CA_MARGINAL_ELEC_CO2 = (81.49 / 1000) / _KWH_PER_MJ
+

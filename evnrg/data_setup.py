@@ -3,74 +3,12 @@ import numpy as np
 from datetime import datetime
 
 from .scenario import Scenario
-from .datastorage import DatasetInfo, StorageInfo, DataHandler, UploadResult
 from .evse import EVSEType
 from .powertrain import Powertrain, PType
 from .plug import DCPlug
 
 from .types import make_evse_banks, make_fleet
 
-
-def load_data(ds: DatasetInfo, si: StorageInfo):
-    st = DataHandler(si)
-
-    df  = None
-
-    try:
-        df = st.read_data(ds.obj_path)
-    except Exception as e:
-        raise e
-
-    finally:
-        st.cleanup()
-    
-    return df
-
-def write_data(
-    df: pd.DataFrame,
-    ds: DatasetInfo,
-    si: StorageInfo,
-    basepath: str,
-    name: str = None,
-    meta: dict = {},
-    fmt = 'records'):
-
-
-    st = DataHandler(si)
-
-    try:
-        results = st.upload_df(
-            df,
-            obj_path=basepath,
-            uid=name,
-            fmt=fmt,
-            meta=meta
-        )
-    except Exception as e:
-        raise e
-    finally:
-        st.cleanup()
-    
-    return results
-
-def write_data_iter(dfs: list, names: list, ds: DatasetInfo,
-    si: StorageInfo, basepath: str, formats: str ='records, json, csv', 
-    meta: dict={}):
-    outputs = []
-    for out_df, out_name in zip(sim_result, names):
-        outputs.extend(
-            write_data(
-                out_df,
-                ds,
-                si,
-                name=ds.dataset_id + '-' + out_name,
-                basepath=basepath,
-                meta = meta
-            )
-        )
-    return outputs
-
-    
 
 def banks_from_df(df: pd.DataFrame, sc: Scenario):
     size = len(df.columns)

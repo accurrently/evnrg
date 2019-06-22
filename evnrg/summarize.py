@@ -156,6 +156,33 @@ def summarize_energy_info(
         }
     )
 
+def agg_cols(df: pd.DataFrame, fid, sid, ops: dict):
+
+    data = {
+        'fleet': fid,
+        'scenario': sid
+    }
+
+    for k, oplist in ops.items():
+        for v in oplist:
+            if v == 'sum':
+                data['total_{}'.format(k)] = df[k].sum()
+            elif v == 'mean':
+                data['mean_{}'.format(k)] = df[k].mean()
+            elif v == 'max':
+                data['max_{}'.format(k)] = df[k].max()
+            elif v == 'min':
+                data['min_{}'.format(k)] = df[k].min()
+            elif v == 'std':
+                data['std_{}'.format(k)] = df[k].std()
+            elif v == 'median':
+                data['median_{}'.format(k)] = df[k].median()
+            elif v == 'mode':
+                data['mode_{}'.format(k)] = df[k].mode()
+    
+    return data
+
+
 def summarize_summary(df: pd.DataFrame, fid, sid):
     return {
         'mean_evse_utilization': df['evse_utilization'].mean(),
@@ -181,11 +208,6 @@ def apply_lambda(
 
     return df
 
-def add_id_cols(df: pd.DataFrame, fleet_id: str, scenario_id: str):
-    df['fleet'] = fleet_id
-    df['scenario'] = scenario_id
-    return df
-
 def add_time_cols(df: pd.DataFrame):
     cal = calendar()
     holidays = cal.holidays(start=df.index.date.min(), end=df.index.date.max())
@@ -200,8 +222,8 @@ def add_datetime_cols( df: pd.DataFrame ):
     holidays = cal.holidays(start=df.index.date.min(), end=df.index.date.max())
 
     df['time'] = df.index.time
-    df['hour'] = df.index.hour.values + (df.index.minute.values / 60.)
-    df['hour24'] = (df.index.hour.values * 100) + df.index.minute.values
+    df['hour'] = df.index.hour
+    df['time_of_day'] = (df.index.hour.values * 100) + df.index.minute.values
     df['date'] = df.index.date
     df['weekend_or_holiday'] = df.index.to_series().apply(
         lambda x: (x.weekday() >= 5) or (x.date() in holidays)
@@ -210,17 +232,16 @@ def add_datetime_cols( df: pd.DataFrame ):
     
     return df
 
-def calc_summary(df: pd.DataFrame, grid_ci: float):
+def calc_gwp(df: pd.DataFrame, grid_ci: float):
     df['idle_batt_gwp'] = df['idle_batt_used'] * grid_ci
     df['drive_batt_gwp'] = df['drive_batt_used'] * grid_ci
     df['total_ghg_kgCO2'] = df['idle_fuel_gwp'] + df['drive_fuel_gwp'] + df['idle_batt_gwp'] + df['drive_batt_gwp']
     df['idle_ghg_kgCO2'] = df['idle_fuel_gwp'] + df['idle_batt_gwp']
     df['drive_ghg_kgCO2'] = df['drive_fuel_gwp'] + df['drive_batt_gwp']
     return df
-
         
 
-def energy_cost(
+def calc_energy_cost(
     fuel_df: pd.DataFrame,
     energy_df: pd.DataFrame,
     fid: str,
@@ -239,50 +260,6 @@ def energy_cost(
         'total_cost': (fuel_price * total_fuel) + (elec_price * total_elec)
     }
 
-def idle_cost(
-    summary_df: pd.DataFrame,
-    fid: str,
-    sid: str,
-    fuel_price: float,
-    elec_price: float):
-    return energy_cost(
-        summary_df[['idle_fuel_used']],
-        summary_df[['idle_batt_used']],
-        fid,
-        sid,
-        fuel_price,
-        elec_price
-    )
-
-
-def energy_pricing(
-    s: pd.Series,
-    e_prices: list,
-    f_prices: list):
-
-    frames = []
-
-    for ep in e_prices:
-        
-        fr = pd.DataFrame(
-            [s]*len(f_prices)
-        )
-        fr['elec_price'] = ep
-        fr['fuel_price'] = f_prices
-        frames.append(fr)
-
-    df = pd.concat(frames, axis=0, ignore_index=True)
-
-    df['idle_fuel_cost'] = df['idle_fuel_gal'] * df['fuel_price']
-    df['idle_elec_cost'] = df['idle_battery_kWh'] * df['elec_price']
-    df['drive_fuel_cost'] = df['drive_fuel_gal'] * df['fuel_price']
-    df['drive_elec_cost'] = df['drive_battery_kWh'] * df['elec_price']
-    df['used_elec_cost'] = df['idle_elec_cost'] + df['drive_elec_cost']
-    df['used_fuel_cost'] = df['idle_fuel_cost'] + df['drive_fuel_cost']
-    df['total_running_cost'] = df['used_elec_cost'] + df['used_fuel_cost']
-
-    return df
-
 def sum_cols(df: pd.DataFrame, sname: str):
 
     out = pd.DataFrame(
@@ -300,62 +277,3 @@ def get_col(df: pd.DataFrame, new_name: str, colname: str):
     out.columns = [new_name]
 
     return out
-
-@nb.njit(cache=True)
-def calc_co2e(distance: np.array, battery: np.array, elec_ci: float, fleet: np.array):
-
-    out = np.zeros((3, distance.shape[1]), dtype=np.float32)
-
-    IDLE = 0
-    DRIVE = 1
-    TOTAL = 2
-
-    for j in range(distance.shape[1]):
-        idle_co2 = 0.
-        drive_co2 = 0.
-        # Idle
-        if distance[i, j] < 0:          
-            idle_co2 += fuel[i, j] * fleet[j]['fuel_co2e']
-            if i > 0:
-                idle_co2 += (battery[i - 1, j] - battery[i, j]) * elec_ci
-            else:
-                idle_co2 += (fleet[j]['ev_max_batt'] - battery[i, j]) * elec_ci
-        # Driving
-        elif distance[i, j] > 0:
-            drive_co2 += fuel[i, j] * fleet[j]['fuel_co2e']
-            if i > 0:
-                drive_co2 += (battery[i - 1, j] - battery[i, j]) * elec_ci
-            else:
-                drive_co2 += (fleet[j]['ev_max_batt'] - battery[i, j]) * elec_ci
-        out[IDLE] = idle_co2
-        out[DRIVE] = drive_co2
-        out[TOTAL] = idle_co2 + drive_co2
-    
-    return out
-
-def make_co2e_df(distance_df: pd.DataFrame, battery_df: pd.DataFrame, elec_ci, fleet):
-
-    arr = calc_co2e(distance.values, battery.valus, elec_ci, fleet)
-
-    out = pd.DataFrame(
-        data=arr,
-        columns = ['idle', 'drive', 'total'],
-        index=distance.index
-    )
-
-    return out
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
