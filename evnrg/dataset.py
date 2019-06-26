@@ -11,6 +11,23 @@ class DatasetInfo(NamedTuple):
     dataset_id: str
     obj_path: str
 
+def _ts_floor(ts: pd.Timestamp, freq: str = 'month'):
+
+    d = {
+        'month': lambda: pd.Timedelta('1 day') * (ts.day - 1),
+        'week': lambda: pd.Timedelta('1 day') * ts.weekday,
+        'day': lambda: 0
+    }
+
+    f = d.get(freq)
+
+    if not f:
+        raise ValueError(
+            """freq must be month, week, or day."""
+        )
+    
+    return ts.normalize() - f()
+
 @nb.njit
 def _nb_create_dprof(
     a: np.array,
@@ -73,40 +90,82 @@ def _nb_create_mprof(
         
         a[b:e] = msk_arr[i]
 
-def _make_drange_arr(tsmin, tsmax, omin, omax, freq='5min',):
+class TripLog(object):
 
-    omin = 0
-    omax = 0
-
-    return pd.date_range(
-        pd.Timestamp(tsmin)+ omin,
-        tsmax + omax,
-        freq=freq
-    ).values[:-1]
-
-def _make_empty_ddf(tsmin, tsmax, freq='5min'):
-    tmin = pd.Timestamp(tsmin)+ pd.DateOffset(days=0, normalize=True) 
-    tmax = tsmax + pd.DateOffset(days=1, normalize=True)
-    return pd.DataFrame(
-        index = pd.date_range(tmin, tmax, freq=freq).values[:-1]
+    __slots__ = (
+        'df',
+        'div_freq',
+        'cm',
+        'freq'
     )
 
-def _make_prof_series(
-    name: str,
-    df: pd.DataFrame,
-    ts_begin,
-    ts_end,
-    freq: str = '5min'):
+    def __init__(self, 
+        data,
+        fmt: str='parquet',
+        chunksize: int=1000,
+        division_freq: str='month',
+        freq: str='5min',
+        column_map: ColumnMap=ColumnMap()):
 
-    beg = ts_begin + pd.DateOffset(days=0, normalize=True)
-    end = ts_end + pd.DateOffset(days=1, normalize=True)
+        self.cm = column_map
+        self.div_freq = division_freq
+        self.freq = freq
+
+        if isinstance(data, str):
+            if fmt == 'parquet':
+                self.df = dd.read_parquet(data)
+            elif fmt == 'csv':
+                self.df = dd.read_csv(data)
+            else:
+                raise ValueError(
+                    """Invalid file format. 
+                    If reading from file, use 'csv' or 'parquet'.
+                    """
+                )
+        elif isinstance(data, dd.DataFrame):
+            self.df = data
+        elif isinstance(data, pd.DataFrame):
+            self.df = dd.from_pandas(data, chunksize=chunksize)
+        elif isinstance(data, list):
+            self.df = dd.from_delayed(data)
+        else:
+            raise TypeError(
+                """Data must be of type str, 
+                dask.DataFrame, 
+                pandas.DataFrame, 
+                or list of delayed pandas.DataFrame.
+                """
+            )
     
-    return pd.Series(
-        data=0.,
-        index=pd.date_range(beg, end, freq=freq),
-        dtype=np.float32,
-        name=name
-    )
+    def date_range(self, freq: str = '5min'):
+        
+        b = _ts_floor(
+            self.df[self.cm.trip_begin].min(),
+            freq = self.div_freq
+        )
+
+        e_ts = self.df[self.cm.trip_end].max() + pd.DateOffset(**{self.div_freq: 1})
+
+        e = _ts_floor(
+            e_ts,
+            freq = self.div_freq
+        )
+
+        return pd.date_range(b, e, freq=freq)
+
+    def _make_empty_df(self):
+        return pd.DataFrame(
+            index = self.date_range(freq=self.freq)
+        )
+
+    def _make_prof_series(self, name: str):
+        
+        return pd.Series(
+            data=0.,
+            index=self.date_range(freq=self.freq),
+            dtype=np.float32,
+            name=name
+        )
 
 
 def _make_dprof_series(
@@ -210,8 +269,6 @@ class ProfileGenerator(object):
         delayed_df = dask.delayed(pd.DataFrame)(
             index = self.date_range(ts_min, ts_max, self.freq)
         )
-
-        part_range = self.date_range(ts_min, ts_max, freq=self._part_freq)
 
         
 
